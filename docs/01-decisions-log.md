@@ -153,3 +153,23 @@ Format for each entry:
 - **Rationale:** This question (OQ-004) was not explicitly answered by the user on 2026-05-16 when the other open questions were resolved. Per the working preference to make reasonable defaults rather than block, defaulting to Option A — the recommended option, narrow enough not to fight P&F's strength at catching turnarounds. Particularly defensible now that the universe is full US equities, which contains many structurally broken microcap names that need to be filtered out before P&F evaluation.
 - **Status:** Provisional — explicitly flagged as defaulted, awaiting advisor override if desired.
 - **Context:** OQ-004 left unanswered in user's 2026-05-16 response. Default applied with full transparency in the open-questions log so the advisor can override at any time.
+
+---
+
+## 2026-05-16 — Universe liquidity floor: $1 minimum price, no explicit volume floor (resolves OQ-009)
+
+- **Decision:** Apply a **$1 minimum price floor** to the screening universe. No explicit minimum-volume filter is applied at this time.
+- **Rationale:** Confirmed by user 2026-05-16. The $1 floor excludes outright penny stocks while preserving the broadest possible idea pool. Volume-based filtering is deferred — if untradeable names start appearing in reports, a volume floor can be added later.
+- **Status:** Confirmed (resolves OQ-009)
+- **Context:** User stated: "lets set the floor at 1$." Note: with a $1 floor and no volume filter, the screen may surface low-volume names where execution costs would be high relative to position size. Flagging this for re-evaluation once we see actual report output — the advisor may choose to add a volume floor after seeing what slips through.
+
+---
+
+## 2026-05-16 — Hardened NDWEQTA coverage (informs OQ-002)
+
+- **Decision (informational, not a new project decision):** Direct API metadata queries to Nasdaq Data Link have hardened the picture of what NDWEQTA actually contains. Two material updates versus the initial research:
+  1. **"NDWTA" database does not exist** as a real datatable — only NDWEQTA and NDWFUNDTA are queryable. The previously listed "NDWTA" appears in some marketing materials but the actual datatable code returns 404. License NDWEQTA standalone; there is no second equity database to consider.
+  2. **Bullish Percent Index series and raw P&F chart column data are NOT in NDWEQTA** (or any Nasdaq Data Link feed) — they are platform-only. Both are easy for us to build ourselves: BPI is a one-line aggregation over NDWEQTA's per-stock signal column; chart visualization is the P&F engine we're already building from OHLC.
+- **Rationale:** Updated research dive on 2026-05-16 captured in [research/ndw-data-link-pricing.md](research/ndw-data-link-pricing.md).
+- **Implication for OQ-002:** No change to the working choice (Option A — license NDWEQTA), but the architecture is now clearer: NDWEQTA = source of truth for DWA signals/RS/TA score; we self-build BPI, charts, and sector BPIs.
+- **Status:** Informational — does not alter the OQ-002 decision, only sharpens it.

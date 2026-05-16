@@ -71,14 +71,7 @@ Each item is tagged with:
 
 ---
 
-## OQ-009: Liquidity floor for the universe
+## ~~OQ-009: Liquidity floor for the universe~~ — RESOLVED 2026-05-16
 
-- **Question:** Now that the universe is "all US equities," we need a minimum-liquidity filter to exclude truly untradeable names (penny stocks, illiquid microcaps the advisor can't realistically transact in). What thresholds?
-  - **A.** Minimum price $1, minimum 20-day average dollar volume $100K — permissive, includes most microcaps
-  - **B.** Minimum price $5, minimum 20-day average dollar volume $1M — moderate, excludes penny stocks
-  - **C.** Minimum price $10, minimum 20-day average dollar volume $5M — strict, focuses on liquid mid-caps and above
-  - **D.** No filter — evaluate every listed common stock the data vendor returns
-- **Blocking?** Not immediately, but needs an answer before Phase 1 universe definition is finalized
-- **Owner:** Advisor
-- **Asked:** 2026-05-16 (new question, arose from the full-US-equities universe decision)
-- **Notes:** The advisor's typical client position sizes drive the right answer here — if they routinely place orders that are large relative to a microcap's daily volume, they need a higher floor. Recommendation: Option B as a sensible default, easily adjustable later.
+- **Resolution:** $1 minimum price floor, no explicit volume filter. See [decisions log 2026-05-16](01-decisions-log.md#2026-05-16--universe-liquidity-floor-1-minimum-price-no-explicit-volume-floor-resolves-oq-009).
+- **Caveat to revisit:** if reports start surfacing low-volume names where execution costs would dominate position size, add a volume floor (e.g., min 20-day avg dollar volume $100K) later.
