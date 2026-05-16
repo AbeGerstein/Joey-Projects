@@ -10,65 +10,43 @@ Each item is tagged with:
 
 ---
 
-## OQ-001: Box scaling confirmation
+## ~~OQ-001: Box scaling confirmation~~ — RESOLVED 2026-05-16
 
-- **Question:** Confirm that we use Dorsey's traditional price-tiered box scaling for stock price charts. (Recommended in [methodology/point-and-figure.md](methodology/point-and-figure.md).)
-- **Blocking?** No (default to traditional unless overridden — but lock this in before Phase 2 chart-construction work begins)
-- **Owner:** Advisor
-- **Asked:** 2026-05-15
-- **Notes:** Traditional scaling matches Dorsey's book and the DWA platform default. Percentage scaling is reserved for RS charts.
+- **Resolution:** Use Dorsey's traditional price-tiered box-scaling table for price charts. See [decisions log 2026-05-16](01-decisions-log.md#2026-05-16--box-scaling-dorseys-traditional-table-for-price-charts-resolves-oq-001).
 
 ---
 
-## OQ-002: DWA access path
+## OQ-002: DWA access path — PROVISIONALLY RESOLVED 2026-05-16 (pending pricing)
 
-- **Question:** Which of the three viable DWA access paths do we use?
-  - **A.** License the Nasdaq Data Link NDW database (highest fidelity, paid, requires sales quote)
-  - **B.** Manual CSV exports from the existing NDW Research Platform subscription (high fidelity, no extra cost, requires manual step daily/weekly)
-  - **C.** Replicate from raw OHLC using publicly documented methodology (good fidelity, no DWA cost, most flexible)
-- **Blocking?** Yes for Phase 1
-- **Owner:** Advisor (decision); Developer (analysis already done in [research/dwa-access.md](research/dwa-access.md))
-- **Asked:** 2026-05-15
-- **Notes:** Claude's recommendation is C for v1, with the option to layer A as a verification feed in v2. The proprietary "DWA Technical Attributes" composite score is the main thing C gives up — worth asking whether the advisor actually uses that score in their workflow.
+- **Resolution:** Option A — license the Nasdaq Data Link NDW database. Provisional, pending Nasdaq Data Link pricing quote and confirmation of coverage. See [decisions log 2026-05-16](01-decisions-log.md#2026-05-16--dwa-access-path-nasdaq-data-link-ndw-database-provisional-pending-pricing-partial-oq-002) and forthcoming [research/ndw-data-link-pricing.md](research/ndw-data-link-pricing.md).
+- **Still open:** Final cost confirmation. If pricing exceeds the project budget, options B (manual export) or C (replicate) come back on the table — though both have downsides at this point (B incompatible with daily cadence, C missing the Technical Attributes score the advisor relies on).
 
 ---
 
-## OQ-003: Stock universe
+## ~~OQ-003: Stock universe~~ — RESOLVED 2026-05-16
 
-- **Question:** What universe of tickers does the bot evaluate?
-  - **A.** Russell 3000 (≈3,000 names — large + mid + small caps)
-  - **B.** S&P 1500 (≈1,500 names — large + mid + small caps with stronger liquidity filter)
-  - **C.** Full US listed (NYSE + NASDAQ filtered by minimum price and volume — ≈4,000–5,000 names)
-  - **D.** A custom watchlist the advisor maintains
-- **Blocking?** Yes for Phase 1
-- **Owner:** Advisor
-- **Asked:** 2026-05-15
-- **Notes:** Claude's recommendation is Russell 3000 to start. It's broad enough to surface non-obvious names, narrow enough to keep compute tractable and to align with how DWA itself indexes the equity universe.
+- **Resolution:** Full US equities universe (NYSE + NASDAQ common stocks). Minimum liquidity filter to be defined separately (see [OQ-009](#oq-009-liquidity-floor-for-the-universe)). See [decisions log 2026-05-16](01-decisions-log.md#2026-05-16--universe-full-us-equities-used-for-both-screening-and-backtesting-resolves-oq-003-and-oq-007).
 
 ---
 
-## OQ-004: Fundamental filter criteria
+## OQ-004: Fundamental filter criteria — PROVISIONALLY DEFAULTED 2026-05-16
 
-- **Question:** What does the fundamental filter actually screen on? Some shapes to choose from:
-  - **A.** Quality gate only (positive FCF, manageable debt, positive ROE)
+- **Question:** What does the fundamental filter actually screen on?
+  - **A.** Quality gate only (positive FCF, manageable debt, positive ROE) — **provisionally adopted**
   - **B.** Quality + growth (A plus positive revenue/EPS growth over TTM)
   - **C.** Quality + growth + reasonable valuation (B plus industry-relative P/E or PEG within bounds)
   - **D.** Custom set the advisor uses today
-- **Blocking?** Yes for Phase 3
+- **Status:** Provisionally defaulted to Option A on 2026-05-16 ([decisions log entry](01-decisions-log.md#2026-05-16--fundamental-filter-shape-option-a-quality-gate-only-provisional--defaulted-not-explicitly-confirmed)). Advisor did not explicitly answer this question and the default was applied to keep work unblocked.
+- **Blocking?** Was blocking Phase 3 — now unblocked by the default, but advisor should confirm or override before Phase 3 implementation begins.
 - **Owner:** Advisor
-- **Asked:** 2026-05-15
-- **Notes:** Per Dorsey's view, this is a junk-rejection gate, not a primary signal. Recommend keeping it narrow — option A or B. Detailed shape captured in [methodology/fundamental-screen.md](methodology/fundamental-screen.md).
+- **Asked:** 2026-05-15; defaulted 2026-05-16
+- **Notes:** Recommendation stands: keep this narrow — the filter's job is junk rejection, not stock-picking on a fundamental basis. Particularly important now that the universe is full US equities and includes many structurally broken microcap names.
 
 ---
 
-## OQ-005: Report cadence and delivery
+## ~~OQ-005: Report cadence~~ — RESOLVED 2026-05-16
 
-- **Question:** When does the advisor get the report and in what format?
-  - Default working assumption: daily PDF email after market close (or pre-market the next day), plus a weekly summary on Sundays
-- **Blocking?** Not immediately, but needs to be settled before Phase 5
-- **Owner:** Advisor
-- **Asked:** 2026-05-15
-- **Notes:** PDF email is the lowest-friction format. An internal web dashboard could be added later if the advisor wants to drill in.
+- **Resolution:** Daily report. See [decisions log 2026-05-16](01-decisions-log.md#2026-05-16--report-cadence-daily-resolves-oq-005). Exact delivery format and timing to be finalized in Phase 5.
 
 ---
 
@@ -79,20 +57,28 @@ Each item is tagged with:
 
 ---
 
-## OQ-007: Backtest universe and look-back window
+## ~~OQ-007: Backtest universe~~ — RESOLVED 2026-05-16
 
-- **Question:** How many years of historical data should the backtest cover, and should the universe be "Russell 3000 as it stood on each historical date" (point-in-time) or "Russell 3000 as it stands today" (which introduces survivorship bias)?
-- **Blocking?** Not immediately — relevant for Phase 4
-- **Owner:** Developer (analysis) + Advisor (decision)
-- **Asked:** 2026-05-15
-- **Notes:** Point-in-time is the rigorous choice but requires a historical constituent list from the data vendor. Survivorship-biased backtest is faster to set up but overstates real-world performance. Decide in Phase 4.
+- **Resolution:** Same as the screening universe — full US equities. See [decisions log 2026-05-16](01-decisions-log.md#2026-05-16--universe-full-us-equities-used-for-both-screening-and-backtesting-resolves-oq-003-and-oq-007).
+- **Still open:** point-in-time vs survivorship-biased backtest — the *handling* of the historical universe. Recommendation is point-in-time (rigorous, no survivorship bias), which requires historical constituent data. To be settled when Phase 4 begins.
 
 ---
 
-## OQ-008: Does the advisor use DWA's "Technical Attributes" composite score?
+## ~~OQ-008: DWA Technical Attributes score usage~~ — RESOLVED 2026-05-16
 
-- **Question:** In the advisor's actual workflow, do they rely on DWA's proprietary "Technical Attributes" composite score, or do they primarily look at the underlying signals (current P&F signal, RS, trend, etc.)?
-- **Blocking?** No — but the answer affects whether the recommendation in OQ-002 stands
+- **Resolution:** Yes — the advisor uses the Technical Attributes score and the full DWA toolset; the bot must include the same. See [decisions log 2026-05-16](01-decisions-log.md#2026-05-16--advisor-relies-on-dwa-technical-attributes-score-and-the-full-dwa-toolset-resolves-oq-008).
+- **Implication:** Drives OQ-002 toward Option A (Nasdaq Data Link) — the Technical Attributes score is not replicable from raw OHLC.
+
+---
+
+## OQ-009: Liquidity floor for the universe
+
+- **Question:** Now that the universe is "all US equities," we need a minimum-liquidity filter to exclude truly untradeable names (penny stocks, illiquid microcaps the advisor can't realistically transact in). What thresholds?
+  - **A.** Minimum price $1, minimum 20-day average dollar volume $100K — permissive, includes most microcaps
+  - **B.** Minimum price $5, minimum 20-day average dollar volume $1M — moderate, excludes penny stocks
+  - **C.** Minimum price $10, minimum 20-day average dollar volume $5M — strict, focuses on liquid mid-caps and above
+  - **D.** No filter — evaluate every listed common stock the data vendor returns
+- **Blocking?** Not immediately, but needs an answer before Phase 1 universe definition is finalized
 - **Owner:** Advisor
-- **Asked:** 2026-05-15
-- **Notes:** If the score is central, the case for option A (licensing the NDW Data Link database) gets much stronger. If the advisor mostly looks at underlying signals, replicating from raw OHLC is sufficient.
+- **Asked:** 2026-05-16 (new question, arose from the full-US-equities universe decision)
+- **Notes:** The advisor's typical client position sizes drive the right answer here — if they routinely place orders that are large relative to a microcap's daily volume, they need a higher floor. Recommendation: Option B as a sensible default, easily adjustable later.

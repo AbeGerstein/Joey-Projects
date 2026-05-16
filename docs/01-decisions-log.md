@@ -99,3 +99,57 @@ Format for each entry:
 - **Rationale:** Per the user, the advisor confirmed compliance clearance before commissioning the project.
 - **Status:** Confirmed
 - **Context:** User stated on 2026-05-16: "the advisor would not have commissioned me to do this without knowing that is was ok." Resolves OQ-006. The compliance posture documented in [compliance.md](compliance.md) remains the working framework — if it changes (e.g., the project ever produces client-facing output), the compliance question reopens.
+
+---
+
+## 2026-05-16 — Advisor relies on DWA Technical Attributes score and the full DWA toolset (resolves OQ-008)
+
+- **Decision:** The bot must surface and use DWA's proprietary **Technical Attributes composite score** alongside the underlying P&F signals, Relative Strength data, BPI data, and sector data. The advisor uses every output DWA provides in their daily analysis and wants the bot to do the same.
+- **Rationale:** Confirmed by user 2026-05-16. This decision directly drives OQ-002 — the Technical Attributes score is proprietary and cannot be reproduced by replicating from raw OHLC. Only the licensed Nasdaq Data Link NDW database includes it.
+- **Status:** Confirmed (resolves OQ-008)
+- **Context:** User stated: "yes he uses everything offered by dorsey wright including the technical score in his analysis and i want you to do that as well."
+
+---
+
+## 2026-05-16 — DWA access path: Nasdaq Data Link NDW database (provisional, pending pricing) (partial OQ-002)
+
+- **Decision:** Working choice is **Option A — license the Nasdaq Data Link NDW database(s)** for direct API access to DWA's signals, RS data, Technical Attributes score, BPI data, and sector tags. Final commitment pending the Nasdaq Data Link pricing quote and confirmation (see [research/ndw-data-link-pricing.md](research/ndw-data-link-pricing.md), forthcoming) that the database covers the full set of fields the advisor relies on. Supersedes the earlier provisional recommendation of Option C (replicate from raw OHLC), which was rejected once OQ-008 confirmed the advisor needs the Technical Attributes score.
+- **Rationale:** The Technical Attributes score is proprietary to DWA and only available via the licensed Data Link feed (or the DWA platform UI, which is not programmatic). Replication from raw OHLC is no longer viable as the primary path. Option B (manual CSV exports) is rejected because the daily-report cadence (OQ-005) makes a manual export step unworkable.
+- **Status:** Provisional — pending pricing and coverage confirmation. Final commitment after research is complete.
+- **Context:** User stated 2026-05-16: "most liklely will do the nasdaq data link as that provides everything it just depends on cost." Cost is the only remaining variable.
+
+---
+
+## 2026-05-16 — Universe: full US equities, used for both screening and backtesting (resolves OQ-003 and OQ-007)
+
+- **Decision:** The bot evaluates the **full US equities universe** (NYSE + NASDAQ-listed common stocks). The same universe is used for backtesting, which means historical point-in-time constituent data is required to avoid survivorship bias. A minimum liquidity filter is needed to keep the universe practically tradeable for the advisor — exact thresholds to be defined (see new open question on liquidity floor).
+- **Rationale:** Confirmed by user 2026-05-16. Driven by the advisor's preference for the broadest possible idea pool. Note: under Option A (Nasdaq Data Link), the universe is effectively bounded by the coverage of DWA's NDWEQTA database. We will treat NDWEQTA's coverage as the de facto universe definition.
+- **Status:** Confirmed (resolves OQ-003 and OQ-007)
+- **Context:** User stated for OQ-003: "he wants all stocks in the us equities universe to be included in the evaluation." For OQ-007: "just like where we are screening the entire us equities universie that is the same one we will use for backtesting."
+
+---
+
+## 2026-05-16 — Box scaling: Dorsey's traditional table for price charts (resolves OQ-001)
+
+- **Decision:** Use Dorsey's **traditional price-tiered box-scaling table** for all stock price charts. The table from *Point and Figure Charting* (see [methodology/point-and-figure.md](methodology/point-and-figure.md)) is the authoritative reference. Percentage scaling (6.5% for stocks, 3.25% for funds) remains reserved for Relative Strength charts per Dorsey's own convention.
+- **Rationale:** Confirmed by user 2026-05-16. Matches Dorsey's book and the DWA platform default.
+- **Status:** Confirmed (resolves OQ-001)
+- **Context:** User stated: "the correct box sizing we are using is dorsey wrights traditional one not the percentage one."
+
+---
+
+## 2026-05-16 — Report cadence: daily (resolves OQ-005)
+
+- **Decision:** The bot produces a **daily report**. Delivery format (PDF email vs HTML email vs dashboard) and exact delivery time (pre-market vs after-close) to be settled in Phase 5.
+- **Rationale:** Confirmed by user 2026-05-16.
+- **Status:** Confirmed (resolves OQ-005)
+- **Context:** User stated: "it will be a daily report."
+
+---
+
+## 2026-05-16 — Fundamental filter shape: Option A, quality gate only (PROVISIONAL — defaulted, not explicitly confirmed)
+
+- **Decision:** **Provisionally adopt Option A** for the fundamental initial filter: a narrow quality gate (positive trailing-twelve-month FCF, positive ROE, debt/equity below 3.0, has reported financials within the last 2 quarters). See [methodology/fundamental-screen.md](methodology/fundamental-screen.md).
+- **Rationale:** This question (OQ-004) was not explicitly answered by the user on 2026-05-16 when the other open questions were resolved. Per the working preference to make reasonable defaults rather than block, defaulting to Option A — the recommended option, narrow enough not to fight P&F's strength at catching turnarounds. Particularly defensible now that the universe is full US equities, which contains many structurally broken microcap names that need to be filtered out before P&F evaluation.
+- **Status:** Provisional — explicitly flagged as defaulted, awaiting advisor override if desired.
+- **Context:** OQ-004 left unanswered in user's 2026-05-16 response. Default applied with full transparency in the open-questions log so the advisor can override at any time.
