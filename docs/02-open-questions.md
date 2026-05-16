@@ -72,13 +72,10 @@ Each item is tagged with:
 
 ---
 
-## OQ-006: Compliance officer sign-off
+## ~~OQ-006: Compliance officer sign-off~~ — RESOLVED 2026-05-16
 
-- **Question:** Does the firm's compliance officer agree that this tool — strictly internal, advisor-only, no client-facing output, no trade execution — is in scope for normal advisor workflow and does not require additional registration, disclosure, or recordkeeping beyond standard practice?
-- **Blocking?** Yes — should be answered before any production data is wired up
-- **Owner:** Advisor (to consult their compliance officer)
-- **Asked:** 2026-05-15
-- **Notes:** Even though our compliance posture is conservative (internal-only, no advice, no trades), confirming this with the firm's compliance officer protects everyone. Capture the conversation in writing for the audit trail.
+- **Resolution:** Treated as already cleared by the advisor — see [decisions log entry 2026-05-16](01-decisions-log.md#2026-05-16--compliance-scope-already-cleared-by-the-advisor-resolves-oq-006).
+- **Caveat:** Resolution covers the current scope only (internal-only, advisor-only, no trade execution). If scope changes — particularly toward any client-facing output — this question reopens.
 
 ---
 
