@@ -29,18 +29,10 @@ Each item is tagged with:
 
 ---
 
-## OQ-004: Fundamental filter criteria — PROVISIONALLY DEFAULTED 2026-05-16
+## ~~OQ-004: Fundamental filter criteria~~ — RESOLVED 2026-05-16 (filter REMOVED)
 
-- **Question:** What does the fundamental filter actually screen on?
-  - **A.** Quality gate only (positive FCF, manageable debt, positive ROE) — **provisionally adopted**
-  - **B.** Quality + growth (A plus positive revenue/EPS growth over TTM)
-  - **C.** Quality + growth + reasonable valuation (B plus industry-relative P/E or PEG within bounds)
-  - **D.** Custom set the advisor uses today
-- **Status:** Provisionally defaulted to Option A on 2026-05-16 ([decisions log entry](01-decisions-log.md#2026-05-16--fundamental-filter-shape-option-a-quality-gate-only-provisional--defaulted-not-explicitly-confirmed)). Advisor did not explicitly answer this question and the default was applied to keep work unblocked.
-- **Blocking?** Was blocking Phase 3 — now unblocked by the default, but advisor should confirm or override before Phase 3 implementation begins.
-- **Owner:** Advisor
-- **Asked:** 2026-05-15; defaulted 2026-05-16
-- **Notes:** Recommendation stands: keep this narrow — the filter's job is junk rejection, not stock-picking on a fundamental basis. Particularly important now that the universe is full US equities and includes many structurally broken microcap names.
+- **Resolution:** Fundamental filter is removed from the project entirely. The bot is a pure P&F screener with no fundamental criteria applied. See [decisions log 2026-05-16](01-decisions-log.md#2026-05-16--fundamental-filter-removed-entirely-supersedes-the-oq-004-default).
+- **Rationale:** Advisor's view (relayed by user 2026-05-16): if fundamentals on a stock are bad, buyers stay away and the P&F chart already shows it — a separate fundamental filter is redundant. Consistent with Dorsey's thesis that the chart reflects all inputs including fundamentals.
 
 ---
 

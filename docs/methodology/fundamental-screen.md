@@ -1,4 +1,12 @@
-# Methodology: Fundamental Initial Filter
+# Methodology: Fundamental Initial Filter — SUPERSEDED 2026-05-16
+
+> **STATUS: This document is retained for the audit record only. The fundamental filter has been removed from the project entirely.**
+>
+> On 2026-05-16, the advisor determined fundamental screening adds no edge to this screener — the P&F chart already reflects fundamental weakness via supply and demand (buyers stay away from bad fundamentals, the chart shows it). The bot is now a pure P&F / supply-and-demand screener. See [decisions log entry](../01-decisions-log.md#2026-05-16--fundamental-filter-removed-entirely-supersedes-the-oq-004-default).
+>
+> The content below describes the filter design as originally scoped. It is not in the production design.
+
+---
 
 The fundamental layer of this project plays a **specific, limited role**: it is a *junk-rejection gate* that runs before P&F evaluation, narrowing the universe to companies whose financial health is sound enough to be worth charting. It is not a scoring engine, and it does not drive ranking. The advisor's edge is P&F; this gate exists to make sure the bot doesn't waste P&F evaluation cycles on companies that have no business being recommended on fundamentals alone.
 

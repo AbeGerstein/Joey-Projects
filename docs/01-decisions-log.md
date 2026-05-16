@@ -173,3 +173,31 @@ Format for each entry:
 - **Rationale:** Updated research dive on 2026-05-16 captured in [research/ndw-data-link-pricing.md](research/ndw-data-link-pricing.md).
 - **Implication for OQ-002:** No change to the working choice (Option A — license NDWEQTA), but the architecture is now clearer: NDWEQTA = source of truth for DWA signals/RS/TA score; we self-build BPI, charts, and sector BPIs.
 - **Status:** Informational — does not alter the OQ-002 decision, only sharpens it.
+
+---
+
+## 2026-05-16 — Fundamental filter REMOVED entirely (supersedes the OQ-004 default)
+
+- **Decision:** Eliminate the fundamental filter from the project entirely. The bot becomes a **pure P&F / supply-and-demand screener** with no fundamental criteria applied.
+- **Rationale:** The advisor — after a direct conversation with the user on 2026-05-16 — determined fundamental screening adds no edge to this screener. His reasoning: if fundamentals on a stock are bad, that weakness is already reflected in the chart via supply/demand — buyers stay away, the P&F chart shows it. Adding a separate fundamental filter on top is redundant. This view is internally consistent with Dorsey's thesis in *Point and Figure Charting* that the chart already reflects all relevant inputs, including fundamentals.
+- **Status:** Confirmed — fully supersedes the 2026-05-16 provisional Option A default for OQ-004.
+- **Context:** User stated: "he does not want to do any fundamental screening as he deterniubed that it really doesnt matter and if the fundamentals on a stock are bad people wont buy them anyway so theres no point in adding it in anyway."
+- **Architecture impact:**
+  - **Phase 3 (Fundamental Screening Engine) is removed** from the project outline
+  - The fundamentals data vendor (Financial Modeling Prep / SimFin) is **no longer needed**, reducing monthly data cost by ~$25 and simplifying the data pipeline
+  - The fundamental "catalyst flags" feature (upcoming earnings, recent guidance, insider buying) is dropped from the daily report
+  - The simplified architecture is now: **OHLC → P&F engine → Pre-momentum scorer → Report**
+- **Documents affected:**
+  - [methodology/fundamental-screen.md](methodology/fundamental-screen.md) marked as superseded
+  - [00-project-outline.md](00-project-outline.md) Phase 3 marked as removed
+  - [README.md](../README.md) methodology framing updated to drop "fundamental quality filter"
+  - [data-sources.md](data-sources.md) fundamentals vendor section now informational only
+
+---
+
+## 2026-05-16 — Bot's specific predictive intent: pre-momentum detection (not momentum confirmation)
+
+- **Decision:** The bot's job is to identify stocks at the **start** of a possible momentum move — *before* the move plays out — not stocks already in motion. Stocks already showing strength (high TA score, well above bullish support, recently broke out, extended X columns) are explicitly **deprioritized or excluded**. The scoring logic in Phase 4 is built around this distinction. See [methodology/pre-momentum-detection.md](methodology/pre-momentum-detection.md) for the pattern catalog and scoring framework.
+- **Rationale:** User direction 2026-05-16. Quote: "I want this bot to use PNF to predict the possibility of the start of a period of momentum that might occur in a given stock in the near future not once its already in the momentum." This was implicit in earlier "pre-breakout" framing but is now explicit, central, and shapes the entire scoring methodology.
+- **Status:** Confirmed
+- **Implication for OQ-002 (NDWEQTA value):** The proprietary Technical Attributes score is **less essential** for this specific screener than originally thought — high TA scores describe stocks already strong, which we now want to deprioritize. NDWEQTA is still useful for authoritative signals and the advisor's workflow familiarity, but the cost calculus shifts. If NDWEQTA's price comes back high, replicating from raw OHLC becomes more justifiable. See [research/ndw-data-link-alternatives.md](research/ndw-data-link-alternatives.md).

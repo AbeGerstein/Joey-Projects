@@ -1,8 +1,8 @@
 # P&F + Fundamental Stock Screening Bot
 
-An advisor-facing screening tool that combines **Point and Figure (P&F) technical analysis** with a **fundamental quality filter** to surface stocks showing high-conviction *pre-breakout* setups — the kind of evidence a skilled P&F practitioner would weigh when forming a buy thesis, applied systematically across a universe of names.
+An advisor-facing screening tool that uses **Point and Figure (P&F) technical analysis** to surface stocks that are *about to enter* a period of upward momentum — catching the inflection before the move plays out, not confirming it after the fact. Pure supply-and-demand analysis applied systematically across the US equity universe.
 
-This project is being built for a financial advisor at a wealth management firm. The bot is **strictly an internal idea-generation aid** — it produces a periodic report for the advisor; it does not produce client-facing material and it does not place trades.
+This project is being built for a financial advisor at a wealth management firm. The bot is **strictly an internal idea-generation aid** — it produces a daily report for the advisor; it does not produce client-facing material and it does not place trades.
 
 ---
 
@@ -16,11 +16,11 @@ See [docs/00-project-outline.md](docs/00-project-outline.md) for the full phased
 
 ## Methodology at a glance
 
-- **Primary engine:** Point and Figure analysis following the conventions in **Thomas J. Dorsey's *Point and Figure Charting*** — chart construction, signal patterns, relative strength, bullish percent indicators, sector rotation. P&F is the supply-and-demand lens used to identify setups.
-- **Initial filter:** a narrow fundamental gate (quality of balance sheet, basic growth and earnings health) that removes outright junk before P&F evaluation. Per Dorsey's view, fundamentals decide *what* to consider; P&F decides *when* and *whether* to act.
-- **Output:** a ranked report of pre-breakout candidates with chart images, signal rationale, suggested entry/stop levels, and supporting fundamentals.
+- **Pure P&F / supply-and-demand screener** following the conventions in **Thomas J. Dorsey's *Point and Figure Charting*** — chart construction, signal patterns, relative strength, bullish percent indicators, sector rotation. No fundamental filter — per the advisor's view (and Dorsey's), the chart already reflects fundamentals via supply and demand.
+- **Pre-momentum focus:** the bot specifically targets stocks at the *start* of a potential momentum move — coiling patterns, near-breakout setups, regime-change signals — not stocks already in motion. Names already extended past their breakout points are deprioritized.
+- **Output:** a ranked daily report of pre-momentum candidates with P&F chart images, signal rationale, and suggested entry/stop levels.
 
-For the full methodology see [docs/methodology/](docs/methodology/).
+For the full methodology see [docs/methodology/](docs/methodology/), particularly [docs/methodology/pre-momentum-detection.md](docs/methodology/pre-momentum-detection.md) which captures the pattern catalog and scoring framework for the predictive intent.
 
 ---
 
@@ -50,8 +50,11 @@ This repository contains the canonical project documentation. Read these in roug
 | [docs/methodology/point-and-figure.md](docs/methodology/point-and-figure.md) | P&F chart construction, box scaling, signals, trendlines |
 | [docs/methodology/relative-strength.md](docs/methodology/relative-strength.md) | DWA RS construction and signals |
 | [docs/methodology/bullish-percent-index.md](docs/methodology/bullish-percent-index.md) | BPI calculation, market posture, sector BPIs |
-| [docs/methodology/fundamental-screen.md](docs/methodology/fundamental-screen.md) | The fundamental initial-filter design |
+| [docs/methodology/pre-momentum-detection.md](docs/methodology/pre-momentum-detection.md) | Pattern catalog and scoring logic for catching the start of a move |
+| ~~docs/methodology/fundamental-screen.md~~ | *(Superseded — fundamental filter removed from the project on 2026-05-16)* |
 | [docs/research/dwa-access.md](docs/research/dwa-access.md) | How to legitimately access DWA data — APIs, exports, ToS, alternatives |
+| [docs/research/ndw-data-link-pricing.md](docs/research/ndw-data-link-pricing.md) | NDWEQTA coverage and pricing investigation |
+| [docs/research/ndw-data-link-alternatives.md](docs/research/ndw-data-link-alternatives.md) | Alternatives to NDWEQTA if pricing is prohibitive |
 | [docs/data-sources.md](docs/data-sources.md) | Evaluation of OHLC, fundamentals, and DWA data vendors |
 | [docs/tech-stack.md](docs/tech-stack.md) | Language, libraries, storage, scheduler, reporting |
 

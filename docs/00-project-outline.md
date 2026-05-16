@@ -22,10 +22,10 @@ The bot does not predict the future. It identifies setups that historically have
 1. Compliance review with the firm's compliance officer. Confirm that an internal-only screening tool that does not produce client-facing material and does not place trades does not trigger additional registration, disclosure, or recordkeeping requirements beyond standard advisor workflow. Document the conversation.
 2. Confirm Dorsey Wright access mechanics (research already completed — see [research/dwa-access.md](research/dwa-access.md)). Decision pending on whether to (a) license Nasdaq Data Link's NDW database, (b) rely on manual CSV exports from the existing NDW Research Platform subscription, or (c) replicate the methodology from raw OHLC.
 3. Define the stock universe. Recommended starting point: Russell 3000 (≈3,000 large + mid + small caps). Alternatives: S&P 1500, NYSE+NASDAQ filtered by minimum price and average volume.
-4. Define the fundamental initial-filter criteria with the advisor. See [methodology/fundamental-screen.md](methodology/fundamental-screen.md) for the design questions.
-5. Define report cadence and delivery format. Working assumption: daily PDF email after market close, plus a weekly summary on Sundays.
+4. ~~Define the fundamental initial-filter criteria with the advisor.~~ **REMOVED 2026-05-16** — fundamental filter eliminated entirely from project scope. See [decisions log](01-decisions-log.md#2026-05-16--fundamental-filter-removed-entirely-supersedes-the-oq-004-default).
+5. Define report cadence and delivery format. **Daily report** confirmed 2026-05-16.
 
-**Deliverable:** a one-page scope agreement covering compliance posture, data sources, universe, fundamental filter, and report cadence — signed off by the advisor before Phase 1 starts.
+**Deliverable:** a one-page scope agreement covering compliance posture, data sources, universe, and report cadence — signed off by the advisor before Phase 1 starts.
 
 ---
 
@@ -34,15 +34,15 @@ The bot does not predict the future. It identifies setups that historically have
 **Goal:** establish the data pipeline that feeds every subsequent phase. Prices, fundamentals, and (if chosen) DWA data flow into a queryable local store on a daily schedule.
 
 **Tasks:**
-1. Stand up a data vendor account. Working recommendation: **Polygon.io Stocks Starter** or **Tiingo** for end-of-day OHLC across US equities. See [data-sources.md](data-sources.md) for the full evaluation.
-2. Stand up a fundamentals vendor. Working recommendation: **Financial Modeling Prep** or **SimFin** for ratios and statements. SEC EDGAR as the primary-source fallback.
-3. Implement the **universe loader** — given a universe definition (e.g., "Russell 3000 as of date X"), produce a list of tickers.
+1. Stand up a data vendor account. Working recommendation: **Polygon.io Stocks Starter** or **Tiingo** for end-of-day OHLC across the full US equity universe (~6,000 names). See [data-sources.md](data-sources.md) for the full evaluation.
+2. ~~Stand up a fundamentals vendor.~~ **REMOVED 2026-05-16** — fundamental filter eliminated from project scope.
+3. Implement the **universe loader** — produce a list of US-listed common stock tickers passing the $1 minimum price floor (see [OQ-009 resolution](01-decisions-log.md#2026-05-16--universe-liquidity-floor-1-minimum-price-no-explicit-volume-floor-resolves-oq-009)).
 4. Implement the **price fetcher** — daily OHLC for every ticker in the universe, stored in a local database. Backfill at least 5 years of history.
-5. Implement the **fundamentals fetcher** — quarterly statements and standard ratios per ticker.
-6. (Optional, conditional on Phase 0 decision) Implement the **DWA data ingester** — either the Nasdaq Data Link client or the CSV-import workflow.
+5. ~~Implement the fundamentals fetcher.~~ **REMOVED 2026-05-16** — no fundamentals in scope.
+6. (Conditional on Phase 0 decision per [OQ-002](02-open-questions.md#oq-002-dwa-access-path--provisionally-resolved-2026-05-16-pending-pricing)) Implement either the **Nasdaq Data Link NDWEQTA ingester** (if pricing is acceptable) or the full **OHLC-based replication path** per [research/ndw-data-link-alternatives.md](research/ndw-data-link-alternatives.md).
 7. Implement a **scheduler** — a daily cron job that refreshes all data after market close.
 
-**Deliverable:** a one-command nightly job that refreshes all data, with a smoke test confirming each ticker in the universe has current OHLC and the latest available fundamentals.
+**Deliverable:** a one-command nightly job that refreshes all data, with a smoke test confirming each ticker in the universe has current OHLC.
 
 ---
 
@@ -66,35 +66,35 @@ This phase is the largest. No production-grade open-source P&F library exists in
 
 ---
 
-## Phase 3 — Fundamental Screening Engine
+## ~~Phase 3 — Fundamental Screening Engine~~ — REMOVED 2026-05-16
 
-**Goal:** the initial filter that narrows the universe before P&F evaluation runs. This is a *junk-rejection* gate, not a primary signal.
-
-**Tasks:**
-1. Implement standard fundamental computations per ticker: ROE, ROIC, gross margin, operating margin, debt/equity, current ratio, free cash flow margin, revenue growth (TTM and 3-year), EPS growth (TTM and 3-year), P/E, PEG, EV/EBITDA.
-2. Implement **industry-relative percentiles** — a P/E of 20 is cheap for software and expensive for utilities. Compare each metric to the ticker's sector or industry peers.
-3. Implement the **fundamental gate** per the criteria locked in Phase 0. Typical shape: a stock passes if it has positive FCF, ROE above some threshold, and reasonable industry-relative valuation. Tickers that fail the gate are excluded from P&F evaluation that day.
-4. Implement **catalyst flags** — upcoming earnings within N days, recent earnings beat/miss, recent guidance change. These don't filter, but they tag rows in the report.
-
-**Deliverable:** for any date and any ticker in the universe, a fundamental score, a pass/fail gate result, and a transparent breakdown of which metrics passed and which failed.
+> **This phase was eliminated from the project on 2026-05-16.** The advisor determined fundamental screening adds no edge — the P&F chart already reflects fundamentals via supply and demand. The bot is now a pure P&F screener.
+>
+> See [decisions log entry](01-decisions-log.md#2026-05-16--fundamental-filter-removed-entirely-supersedes-the-oq-004-default) and the superseded [methodology/fundamental-screen.md](methodology/fundamental-screen.md).
+>
+> The project now skips directly from Phase 2 (P&F Analysis Engine) to Phase 4 (Pre-Momentum Scoring & Detection).
 
 ---
 
-## Phase 4 — Combined Scoring & Pre-Breakout Detection
+## Phase 4 — Pre-Momentum Scoring & Detection
 
-**Goal:** the heart of the bot. Combine technical and fundamental signals to identify the pre-breakout candidates the advisor should consider.
+**Goal:** the heart of the bot. Apply the pre-momentum detection methodology ([methodology/pre-momentum-detection.md](methodology/pre-momentum-detection.md)) to surface stocks at the *start* of a potential move — before momentum develops — not stocks already in motion.
 
 **Tasks:**
-1. Implement the **pre-breakout detector** — for each ticker that passed the fundamental gate, classify its chart state. Categories:
-   - *On a buy signal already, recent breakout* — too late, exclude or flag as confirmed
-   - *Approaching a buy signal* (within N boxes of breakout, with rising RS) — primary candidate
-   - *Coiling at long-term support, RS improving* — secondary candidate
-   - *Recent sell signal or weak RS* — exclude
-2. Implement the **composite score** — weighted combination of (signal quality, RS rank, sector tailwind via sector BPI, fundamental score, proximity to breakout). Initial weights are best-guess; tune in step 4.
-3. Implement the **backtest harness** — replay the past N years, simulating the screener as it would have run each day. For each date, generate the top-K picks. Measure forward returns at standard horizons (1 month, 3 months, 6 months, 12 months). Report hit rate, average winner, average loser, max drawdown, Sharpe.
-4. **Tune** the composite weights using backtest results. Reserve a final out-of-sample year and confirm the tuned weights still perform on that year.
+1. Implement the **pre-momentum pattern detectors** — one function per pattern from the pre-momentum methodology doc:
+   - Bullish triangle near breakout
+   - Long tail down reversal followed by initial buy signal
+   - First buy signal after an extended sell-signal regime
+   - Bullish catapult setup forming (not yet fired)
+   - Long-term RS turning positive
+   - Sector BPI inflection from below 30%
+   - Sideways base with rising RS underneath
+2. Implement the **anti-pattern exclusions** — hard-exclude stocks matching any "already in momentum" criteria (extended above trendline, recent buy signal that has rallied, parabolic X column, high TA score combined with extension).
+3. Implement the **composite pre-momentum score** — weighted combination of pattern setup score, RS regime score, sector tailwind, distance-from-trendline, time-in-base, and TA score penalty. Initial weights are best-guess (see methodology doc); tune in step 5.
+4. Implement the **backtest harness** — replay the past N years, simulating the screener as it would have run each day. For each date, generate the top-K candidates. Measure forward returns at standard horizons (1 month, 3 months, 6 months, 12 months). The key question the backtest must answer: do stocks the bot flagged as pre-momentum candidates actually outperform in the weeks/months *after* being flagged? Report hit rate, average winner, average loser, max drawdown, Sharpe.
+5. **Tune** the composite weights using backtest results. Reserve a final out-of-sample year and confirm the tuned weights still perform on that year.
 
-**Deliverable:** given any date, a ranked list of pre-breakout candidates with full reasoning, plus a documented backtest demonstrating the screen's historical behavior.
+**Deliverable:** given any date, a ranked list of pre-momentum candidates with full reasoning per the methodology doc, plus a documented backtest demonstrating the screen's historical behavior at multiple forward horizons.
 
 ---
 
