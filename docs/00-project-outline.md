@@ -102,15 +102,48 @@ This phase is the largest. No production-grade open-source P&F library exists in
 
 **Goal:** the daily artifact that lands in the advisor's inbox.
 
-**Tasks:**
-1. Implement the **chart renderer** — produce a P&F chart image per candidate using matplotlib or Plotly. Mirror Dorsey's visual conventions (Xs and Os, trendlines, signal labels).
-2. Implement the **report template** — Jinja2 HTML template containing: top N candidates, P&F chart, RS chart, fundamental snapshot, suggested entry and P&F stop, one-paragraph rationale, links to source data.
-3. Implement **PDF generation** via WeasyPrint.
-4. Implement **email delivery** — SMTP or transactional email provider, sending the report to the advisor pre-market each weekday.
-5. Implement the **audit log** — every report generated is archived to disk with timestamp, contents, and the parameter snapshot that produced it. Required for compliance.
-6. (Optional, later) A small **internal dashboard** — a local web app that lets the advisor explore the screen for any date, drill into individual tickers, and review backtest results.
+**Report structure (per advisor direction 2026-05-16):**
 
-**Deliverable:** the advisor receives a usable PDF report each morning before market open, and every report is archived.
+The daily report has three top-level segments:
+
+**0. New Patterns from Last Night** — a callout at the top of the report listing every stock where any of the 7 pre-momentum patterns *fired on the most recent trading day*. These are time-sensitive opportunities and lead the report regardless of where they sit in the broader composite ranking. Each name appears with the pattern that fired, the date/box level, and a one-line context.
+
+**Section A — Pre-Momentum Candidates** — the main attraction. Stocks identified by the pre-momentum methodology ([methodology/pre-momentum-detection.md](methodology/pre-momentum-detection.md)) as being at the start of a potential move. Default: top 25 by composite pre-momentum score.
+
+**Section B — In-Momentum Candidates** — stocks already in strong, sustainable momentum that the advisor may still want to buy into. Curated per [methodology/in-momentum-detection.md](methodology/in-momentum-detection.md); excludes parabolic/blow-off names. Default: top 25 by composite in-momentum score.
+
+**Per-stock detail (extensive, applies to every entry in Section A and B):**
+
+Each candidate's report block includes:
+
+1. **Ticker, company name, sector, current price.**
+2. **Section / category classification.** (Section A or B; primary pattern matched.)
+3. **Composite score** with full component breakdown: pattern score, RS regime score, sector tailwind, distance-from-trendline, time-in-base, TA score contribution, freshness multiplier.
+4. **P&F chart image** (custom rendered, Dorsey conventions: Xs in green/black, Os in red, bullish support and bearish resistance lines, signal annotations).
+5. **RS chart image** versus SPXEWI/RSP — same P&F conventions, percentage scaling.
+6. **Current signal state:** type, date fired, price level, distance from current price.
+7. **Recent signal history** — the previous 3–5 signals with dates and price levels, so the advisor can see how the chart has evolved.
+8. **Pattern reasoning** — narrative explanation of *which* pre-momentum or in-momentum patterns matched and *why*. For example: "This name fired its first buy signal after an 18-month sell-signal regime on 2026-05-15. The long-term RS chart turned positive 6 weeks earlier. The sector BPI is in Bull Alert state. Distance from current price to the bullish support line is 4 boxes ($3 risk on a $48 stock = 6.3%)."
+9. **RS posture:** current RS rank in universe, current RS rank in sector, RS chart state (buy/sell signal), recent direction.
+10. **Sector context:** GICS sector, sector BPI value and state, sector RS posture.
+11. **Trend posture:** above or below bullish support line, distance from trendline, time in current trend.
+12. **Suggested entry zone** — the price range where adding makes sense, typically the current box and the one above.
+13. **Suggested P&F stop level** — the box one below the current bullish support line, or one below a recent O column low.
+14. **Pre-momentum or in-momentum specific notes:**
+    - For pre-momentum names: time-in-base, how many boxes from the next buy signal, what would trigger the breakout
+    - For in-momentum names: how recent the breakout was, how extended the chart is, when the next anti-pattern threshold would be triggered
+15. **(If NDWEQTA is in use) DWA fields:** Technical Attributes score (0–5), DWA sector classification, signal status as DWA reports it (for cross-check).
+
+**Tasks:**
+1. Implement the **chart renderer** — produce P&F chart images per Dorsey's visual conventions. Both price charts and RS charts.
+2. Implement the **per-stock detail compiler** — for each candidate, gather all 15 elements listed above and produce a structured record.
+3. Implement the **report template** — Jinja2 HTML template containing: the New-Last-Night callout, Section A, Section B, and per-stock detail blocks. Mobile-readable but optimized for desktop / PDF reading.
+4. Implement **PDF generation** via WeasyPrint.
+5. Implement **email delivery** — SMTP or transactional email provider, sending the report to the advisor each morning before market open.
+6. Implement the **audit log** — every report generated is archived to disk with timestamp, full contents, and the parameter snapshot that produced it. Required for the audit record per [compliance.md](compliance.md).
+7. (Optional, later) A small **internal dashboard** — a local web app that lets the advisor explore the screen for any date, drill into individual tickers, and review backtest results.
+
+**Deliverable:** the advisor receives a structured daily report each morning before market open, with the three top-level segments and extensive per-stock detail. Every report is archived.
 
 ---
 

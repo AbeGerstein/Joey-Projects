@@ -201,3 +201,26 @@ Format for each entry:
 - **Rationale:** User direction 2026-05-16. Quote: "I want this bot to use PNF to predict the possibility of the start of a period of momentum that might occur in a given stock in the near future not once its already in the momentum." This was implicit in earlier "pre-breakout" framing but is now explicit, central, and shapes the entire scoring methodology.
 - **Status:** Confirmed
 - **Implication for OQ-002 (NDWEQTA value):** The proprietary Technical Attributes score is **less essential** for this specific screener than originally thought — high TA scores describe stocks already strong, which we now want to deprioritize. NDWEQTA is still useful for authoritative signals and the advisor's workflow familiarity, but the cost calculus shifts. If NDWEQTA's price comes back high, replicating from raw OHLC becomes more justifiable. See [research/ndw-data-link-alternatives.md](research/ndw-data-link-alternatives.md).
+
+---
+
+## 2026-05-16 — Two-section report: pre-momentum AND in-momentum, with freshness emphasis
+
+- **Decision:** The daily report has two main sections instead of one:
+  - **Section A — Pre-Momentum Candidates** (the original predictive focus)
+  - **Section B — In-Momentum Candidates** (stocks already in strong, sustainable momentum that the advisor may still want to buy)
+  - Plus a **"New Patterns from Last Night" callout** at the very top of the report that highlights stocks where any pre-momentum pattern fired on the most recent trading day.
+- Within Section B, parabolic / blow-off / overextended names are *still excluded* — Section B is curated, not a dumping ground for everything that's not pre-momentum.
+- **Per-stock detail is extensive:** every candidate's report block contains P&F chart image, RS chart, full signal history (last 3–5 signals), sector context, trend posture with distance-from-trendline, suggested entry zone, suggested P&F stop level, full score component breakdown, and a pattern reasoning narrative. The full specification is in [00-project-outline.md Phase 5](00-project-outline.md#phase-5--reporting--delivery).
+- **Freshness is heavily weighted in the pre-momentum score.** Stocks where a pre-momentum pattern fired in the last trading day get a 2× score multiplier; multipliers decay with age. The advisor's view: the most actionable opportunities are the ones that just appeared.
+- **Rationale:** User direction 2026-05-16. Quotes:
+  - "please make it so that both the pre-momentum stocks are included in the report but i also want the ones currently in strong momentum to be included as well just in case he does want to buy one"
+  - "when the report comes out i want extensive details one each stock and the reasons they are pre-momentum or in momentum"
+  - "Have the first part of the report be the pre-momentum stocks and then the second part be the stocks currently in momentum"
+  - "I want it to look a lot at the stocks that hit new patterns the night before"
+- **Status:** Confirmed
+- **Documents updated:**
+  - New: [methodology/in-momentum-detection.md](methodology/in-momentum-detection.md) for Section B patterns and scoring
+  - [methodology/pre-momentum-detection.md](methodology/pre-momentum-detection.md) updated: anti-patterns now route to Section B rather than excluding, freshness multipliers added, new-last-night callout described
+  - [00-project-outline.md](00-project-outline.md) Phase 5 fully respecified with the new report structure and the 15-element per-stock detail list
+  - [README.md](../README.md) methodology summary updated for the two-section structure

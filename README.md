@@ -17,10 +17,13 @@ See [docs/00-project-outline.md](docs/00-project-outline.md) for the full phased
 ## Methodology at a glance
 
 - **Pure P&F / supply-and-demand screener** following the conventions in **Thomas J. Dorsey's *Point and Figure Charting*** — chart construction, signal patterns, relative strength, bullish percent indicators, sector rotation. No fundamental filter — per the advisor's view (and Dorsey's), the chart already reflects fundamentals via supply and demand.
-- **Pre-momentum focus:** the bot specifically targets stocks at the *start* of a potential momentum move — coiling patterns, near-breakout setups, regime-change signals — not stocks already in motion. Names already extended past their breakout points are deprioritized.
-- **Output:** a ranked daily report of pre-momentum candidates with P&F chart images, signal rationale, and suggested entry/stop levels.
+- **Two-section daily report:**
+  - **Section A — Pre-Momentum Candidates:** stocks at the *start* of a potential move — coiling patterns, near-breakout setups, regime-change signals. The bot's primary focus.
+  - **Section B — In-Momentum Candidates:** stocks already in strong, sustainable momentum that the advisor may still want to buy. Parabolic / blow-off names are excluded.
+- **"New Patterns from Last Night" callout** at the top of every report — stocks where a pre-momentum pattern *just* fired on the most recent trading day. Time-sensitive opportunities lead the report.
+- **Extensive per-stock detail** for every candidate: P&F chart image, RS chart, full signal history, sector context, trend posture, suggested entry and P&F stop level, score component breakdown, and pattern reasoning narrative.
 
-For the full methodology see [docs/methodology/](docs/methodology/), particularly [docs/methodology/pre-momentum-detection.md](docs/methodology/pre-momentum-detection.md) which captures the pattern catalog and scoring framework for the predictive intent.
+For the full methodology see [docs/methodology/](docs/methodology/), particularly [pre-momentum-detection.md](docs/methodology/pre-momentum-detection.md) and [in-momentum-detection.md](docs/methodology/in-momentum-detection.md).
 
 ---
 
@@ -50,7 +53,8 @@ This repository contains the canonical project documentation. Read these in roug
 | [docs/methodology/point-and-figure.md](docs/methodology/point-and-figure.md) | P&F chart construction, box scaling, signals, trendlines |
 | [docs/methodology/relative-strength.md](docs/methodology/relative-strength.md) | DWA RS construction and signals |
 | [docs/methodology/bullish-percent-index.md](docs/methodology/bullish-percent-index.md) | BPI calculation, market posture, sector BPIs |
-| [docs/methodology/pre-momentum-detection.md](docs/methodology/pre-momentum-detection.md) | Pattern catalog and scoring logic for catching the start of a move |
+| [docs/methodology/pre-momentum-detection.md](docs/methodology/pre-momentum-detection.md) | Pattern catalog and scoring logic for catching the start of a move (Section A) |
+| [docs/methodology/in-momentum-detection.md](docs/methodology/in-momentum-detection.md) | Pattern catalog and scoring logic for stocks already in strong momentum (Section B) |
 | ~~docs/methodology/fundamental-screen.md~~ | *(Superseded — fundamental filter removed from the project on 2026-05-16)* |
 | [docs/research/dwa-access.md](docs/research/dwa-access.md) | How to legitimately access DWA data — APIs, exports, ToS, alternatives |
 | [docs/research/ndw-data-link-pricing.md](docs/research/ndw-data-link-pricing.md) | NDWEQTA coverage and pricing investigation |

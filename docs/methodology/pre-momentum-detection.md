@@ -82,29 +82,31 @@ The price chart is in a sideways range (no clear trend, recent signals are mixed
 
 ---
 
-## Patterns that indicate momentum is already underway (DEPRIORITIZE or EXCLUDE)
+## Stocks already in momentum (NOT excluded — see [in-momentum-detection.md](in-momentum-detection.md))
 
-These are anti-patterns. A stock matching any of these is past the window the bot targets, regardless of how strong its overall posture looks.
+**Updated 2026-05-16:** Per the advisor, stocks that are already in strong momentum are *not* excluded from the report. They are still useful to him — sometimes he does want to buy into existing strength. They appear in **Section B of the daily report**, separately from the Section A pre-momentum candidates. See [in-momentum-detection.md](in-momentum-detection.md) for the in-momentum patterns, anti-patterns (exhaustion/blow-off signals), and scoring framework.
 
-### 1. Stock significantly extended above its bullish support line
+The pre-momentum detector's job here is just to **classify** — does this stock match a pre-momentum setup (Section A) or an in-momentum setup (Section B)? Stocks that match neither are not surfaced. Stocks that match both go to Section A by default.
 
-A stock trading more than 5–10 boxes above its 45° bullish support trendline is, by definition, extended. The setup window has passed.
+---
 
-### 2. Recent buy signal already rallied multiple boxes
+## Freshness — pattern-fired-last-night is weighted heavily
 
-A stock that gave its most recent buy signal within the last K columns (default K=3) and has since rallied N or more boxes above the signal level. The move is already underway.
+Per advisor direction 2026-05-16, the bot weights patterns that fired *very recently* much more heavily than patterns that fired weeks ago. A bullish triangle that resolved into a breakout *last night* is far more actionable than the same pattern that fired three weeks ago — the price has had time to extend by then.
 
-### 3. Parabolic X column
+**Freshness contribution to the score:**
 
-A single X column extending more than 15–20 boxes without any reversal. The stock is in a parabolic phase — high implied volatility, no margin of safety on a stop, and statistically poor expected forward returns from this state.
+| Pattern fired (trading days ago) | Score multiplier |
+|---|---|
+| 1 (last night's close) | ×2.0 (significant boost) |
+| 2–3 | ×1.5 |
+| 4–10 | ×1.0 (baseline) |
+| 11–30 | ×0.7 (decayed) |
+| > 30 | ×0.4 (stale; still surfaced if otherwise compelling) |
 
-### 4. High Technical Attributes score combined with extended chart
+**New-last-night callout section in the report:** above Section A, the daily report opens with a **"New Patterns from Last Night"** highlight box listing every stock in the universe where any of the 7 pre-momentum patterns fired on the most recent trading day. These are the freshest opportunities and appear regardless of where they rank in the broader Section A composite score — the advisor sees them first because they are time-sensitive.
 
-A stock with a TA score of 4 or 5 *and* one of the extension indicators above. The TA score is reading the strength that has already played out. (If we have NDWEQTA access — this anti-pattern is detectable directly via the TA score field.)
-
-### 5. Far above the 200-day equivalent / blow-off characteristics
-
-If we compute a rough long-term moving average analog from the P&F chart (e.g., halfway between the highest X and lowest O over the last 24 months), names trading > 50% above this level qualify as blow-off candidates and are excluded.
+The freshness multiplier is layered on top of the composite score described below — it changes ranking, not pattern definition.
 
 ---
 
@@ -119,11 +121,13 @@ For each stock that passes the universe and liquidity filters, the bot computes 
 | Sector tailwind | 0.15 | Sector BPI state (Bull Confirmed, Bull Alert most favorable) |
 | Distance-from-trendline score | 0.15 | Closer to 45° bullish support = higher; far above = lower |
 | Time-in-base score | 0.10 | Longer consolidation before setup = higher conviction |
-| TA score penalty | -0.10 | High TA score with extension → negative contribution (already moved); medium TA with setup → neutral or positive |
+| TA score posture | ±0.10 | Medium TA score with setup is favorable; high TA score with extension is unfavorable |
 
-(Weights are illustrative and will be tuned. The point is the *shape*: pre-momentum patterns and regime changes drive the score; already-in-motion indicators subtract from it.)
+The raw composite score is then **multiplied by the freshness factor** above, producing the final ranking score for Section A.
 
-A stock matching any of the **anti-pattern** criteria above is hard-excluded regardless of score.
+(Weights are illustrative and will be tuned. The point is the *shape*: pre-momentum patterns and regime changes drive the score; freshness amplifies; the anti-patterns inform Section B classification rather than exclusion.)
+
+Stocks matching the anti-pattern (already-in-motion) criteria are **routed to Section B** rather than excluded — see [in-momentum-detection.md](in-momentum-detection.md) for the Section B scoring framework.
 
 ---
 

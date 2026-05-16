@@ -14,22 +14,17 @@ Plus a few small inputs: index data (SPXEWI for RS calculations), sector tags (G
 
 ## 1. OHLC vendors
 
-### Polygon.io (recommended for v1)
+### Polygon.io — NOT viable at retail tier for our use case
 
 | Aspect | Detail |
 |---|---|
 | **Coverage** | Full US equities (NYSE, NASDAQ, OTC); end-of-day and intraday |
-| **History** | 20+ years of daily OHLC; intraday goes back further than most |
-| **Adjustments** | Split-adjusted; dividend-adjusted available via separate endpoint |
-| **API quality** | Modern REST, well-documented, generous rate limits on the Stocks Starter tier |
-| **Cost** | Stocks Starter is ~$29/month at the time of writing; higher tiers up to enterprise |
-| **Universe coverage** | Single ticker fetches; bulk endpoints for full-market snapshots |
-| **Reliability** | Generally well-regarded among independent developers |
-| **Quirks** | Some thinly-traded tickers have gaps; check before relying on them |
+| **History** | 20+ years of daily OHLC |
+| **Cost** | Stocks Starter $29/mo, Developer $79/mo, Advanced $199/mo |
+| **Commercial use** | **Individual tier ToS prohibits commercial use.** Commercial requires their Business tier via sales quote. |
+| **Verdict** | Earlier project assumption that Starter would work was incorrect. For our advisor-commercial use case, Polygon is only available via Business tier with sales-quoted pricing. See [research/ndw-data-link-alternatives.md](research/ndw-data-link-alternatives.md) for compliant alternatives. |
 
-**Recommended tier:** Stocks Starter. Sufficient for end-of-day screening of a Russell 3000 universe.
-
-URL: <https://polygon.io>
+URL: <https://polygon.io/legal/Commercial_Use_Terms.pdf>
 
 ### Tiingo
 
@@ -89,9 +84,16 @@ Acceptable for early Phase 2 prototyping of the P&F engine; replace with a real 
 
 ---
 
-## Recommendation for OHLC
+## Recommendation for OHLC (updated 2026-05-16)
 
-**Polygon.io Stocks Starter for v1**, with Norgate as a serious consideration if the backtest in Phase 4 needs survivorship-bias-free historical universes. The decision can be deferred until Phase 4.
+Given the Polygon.io commercial-use restriction discovered in the comprehensive vendor research, the recommendation has shifted. Working choices:
+
+- **Primary recommendation:** **Norgate Data Platinum** (~$53/mo) for end-of-day OHLC + survivorship-bias-free historical universes. Clean commercial license. Best backtest fidelity in the market.
+- **Add real-time / intraday only if needed:** **Alpaca Markets Algo Trader Plus** ($99/mo) for SIP-quality real-time data with explicit commercial license.
+- **Single-vendor alternative if a clean, defined commercial license is preferred:** **EODHD Commercial Internal-Use** ($399/mo) — more expensive but explicitly priced for this use case.
+- **Cheapest viable:** **Marketstack Basic** ($9.99/mo) for commercial-use-permitted OHLC, but verify data quality on a sample first.
+
+Full comparative evaluation in [research/ndw-data-link-alternatives.md](research/ndw-data-link-alternatives.md).
 
 ---
 
