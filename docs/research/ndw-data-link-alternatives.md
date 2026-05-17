@@ -352,6 +352,10 @@ These are alternatives to building the P&F engine ourselves. They come with P&F 
 
 ## Side-by-side: what Norgate-only delivers vs what NDWEQTA delivers
 
+> **Important framing — NDWEQTA is NOT a complete data solution on its own.** NDWEQTA contains DWA's analysis outputs (signals, RS rankings, Technical Attributes score) keyed by (stock, date). It does not contain raw OHLC. Any NDWEQTA-based architecture **also requires an OHLC vendor** underneath it — for chart rendering in the daily report, for our P&F engine to construct the X/O cells the advisor sees, and for backtesting forward returns in Phase 4. The cost tables throughout this document reflect this — NDWEQTA stacks always pair the proprietary feed with Norgate (or another OHLC source) at the OHLC layer.
+>
+> This means the cost question is not "what does NDWEQTA cost?" but **"what does NDWEQTA cost *as an upgrade* to the Norgate-only baseline?"** — i.e., is the authoritative DWA TA score and signal feed worth its quoted price *on top of* the Norgate cost we're paying regardless?
+
 A common question: if we go with the Norgate-only path to save cost, what specifically do we lose versus NDWEQTA? The honest answer is: **only DWA's proprietary Technical Attributes composite score (0–5).** Everything else can be computed by our P&F engine from Norgate's OHLC.
 
 | Technical analysis output | Norgate-only | NDWEQTA |
