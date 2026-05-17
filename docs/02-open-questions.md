@@ -52,7 +52,8 @@ Each item is tagged with:
 ## ~~OQ-007: Backtest universe~~ — RESOLVED 2026-05-16
 
 - **Resolution:** Same as the screening universe — full US equities. See [decisions log 2026-05-16](01-decisions-log.md#2026-05-16--universe-full-us-equities-used-for-both-screening-and-backtesting-resolves-oq-003-and-oq-007).
-- **Still open:** point-in-time vs survivorship-biased backtest — the *handling* of the historical universe. Recommendation is point-in-time (rigorous, no survivorship bias), which requires historical constituent data. To be settled when Phase 4 begins.
+- **Still open:** point-in-time vs survivorship-biased backtest — the *handling* of the historical universe. Recommendation is point-in-time (rigorous, no survivorship bias), which requires historical constituent data. Norgate Data Platinum (already the working OHLC choice) includes survivorship-bias-free constituent history back to 1990 — this resolves cleanly if we go with Norgate.
+- **Note on data-path implications:** the backtest's data requirement is historical OHLC + the bot's own engine running on it. It does NOT require historical DWA signal series. All three data paths (Norgate-only, NDWEQTA + OHLC, manual DWA export + Norgate) have effectively equivalent backtest capability — only path 2 additionally enables tuning weights against DWA's historical TA score, which is a marginal advantage since our production composite is what we're actually optimizing for. See [research/ndw-data-link-alternatives.md](research/ndw-data-link-alternatives.md#a0-existing-dwa-platform-subscription--daily-manual-csv-export--strong-v1-candidate) backtest implications note for detail.
 
 ---
 

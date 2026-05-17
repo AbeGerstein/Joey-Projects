@@ -109,9 +109,15 @@ This option uses the advisor's *existing* NDW Research Platform subscription (pa
 **Cons:**
 
 - Daily human step (5–10 minutes) — bot has stale data if advisor doesn't export
-- No backfilled DWA history — backtests must use our self-computed signals, not DWA's historical signal series
 - Schema-fragile — if DWA changes export column names, the bot's parser must update
 - Export-row limits may exist (some platforms cap CSV downloads at 500–1000 rows; if so, multiple exports must be stitched)
+- **No backfilled DWA history** — this is often misread as a backtesting limitation, but it isn't. See the *backtest implications* note below.
+
+**Backtest implications — minor:**
+
+A common misread: "no historical DWA data" sounds like "no backtest." It isn't. The bot's production signals come from our own P&F engine running on OHLC, not from DWA — so the backtest replays our engine on historical Norgate OHLC, which is exactly what the production bot uses. Full backtest capability across hit rate, forward returns at multiple horizons, weight tuning, anti-pattern thresholds, and pre-momentum vs in-momentum boundaries is preserved.
+
+The single thing path 3 cannot do that path 2 (NDWEQTA) can: tune the bot's weights against DWA's *historical* TA score performance, i.e., "stocks with DWA TA = 5 historically returned X% — therefore weight TA heavily." Since the production bot uses our own composite (not DWA's exact TA number) as the input, tuning against our self-computed history is the *right* thing to optimize regardless. Path 1 (Norgate-only) has the identical backtest profile as path 3 on this point — both can fully backtest everything the production bot will actually use.
 
 **Verification steps before committing to this path:**
 
