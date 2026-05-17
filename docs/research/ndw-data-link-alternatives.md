@@ -350,6 +350,48 @@ These are alternatives to building the P&F engine ourselves. They come with P&F 
 
 ---
 
+## Side-by-side: what Norgate-only delivers vs what NDWEQTA delivers
+
+A common question: if we go with the Norgate-only path to save cost, what specifically do we lose versus NDWEQTA? The honest answer is: **only DWA's proprietary Technical Attributes composite score (0–5).** Everything else can be computed by our P&F engine from Norgate's OHLC.
+
+| Technical analysis output | Norgate-only | NDWEQTA |
+|---|---|---|
+| Daily OHLC for full US equities | ✅ Norgate | ❌ (needs separate OHLC vendor) |
+| Historical OHLC + survivorship-bias-free history | ✅ Norgate | ❌ |
+| P&F chart construction (X/O cells, columns) | ✅ Our P&F engine from OHLC | ✅ Our P&F engine from OHLC |
+| P&F signal status (DT/TT/catapult/etc.) | ✅ Our signal detectors | ✅ Direct from DWA |
+| P&F trend posture (above support / below resistance) | ✅ Our trendline logic | ✅ Direct from DWA |
+| Relative Strength chart vs SPXEWI/RSP | ✅ Our RS engine | ✅ Direct from DWA |
+| Long-term RS buy/sell signal | ✅ Our RS engine | ✅ Direct from DWA |
+| Bullish Percent Index (universe + sectors) | ✅ Our aggregation | ❌ **Not in NDWEQTA either** — we compute it ourselves regardless of path |
+| Sector classifications | ✅ Norgate's tags or GICS | ⚠️ DWA's proprietary DALI sectors (possibly — unclear) |
+| **DWA Technical Attributes composite score (0–5)** | ❌ **Cannot reproduce — formula is proprietary** | ✅ Direct from DWA |
+| Pre-momentum patterns + scoring | ✅ Phase 4 implementation | ✅ Phase 4 implementation |
+| In-momentum patterns + scoring | ✅ Phase 4 implementation | ✅ Phase 4 implementation |
+
+### The Technical Attributes gap and the internal-composite workaround
+
+The TA score gap is the only meaningful loss in a Norgate-only path. The bot can compute a **functionally equivalent internal composite** that captures the same posture concept by tallying favorable conditions:
+
+- On a P&F buy signal? +1
+- Above bullish support line? +1
+- RS chart on a long-term buy signal? +1
+- Positive RS trend? +1
+- In a sector with favorable BPI state? +1
+
+This produces a transparent 0–5 score using rules the bot can show on every report. It will not match DWA's exact TA number on any given stock — DWA's exact formula is proprietary — but it captures the same posture concept and should correlate strongly with DWA's TA in practice.
+
+The advisor retains the ability to cross-check the bot's internal composite against DWA's authoritative TA score by spot-checking names in his existing NDW Research Platform subscription (which he keeps regardless of the API decision).
+
+### When does the TA gap matter?
+
+- **If the advisor uses TA *directionally*** (just wants a quick read on whether a stock is technically strong by DWA's measure): the internal composite is a reasonable substitute. Go Norgate-only.
+- **If the advisor uses TA *quantitatively*** (e.g., specific rules like "I only buy TA = 5"): the authoritative value matters. Apply the threshold table — license NDWEQTA if it prices under ~$300/mo.
+
+This is a useful question to confirm with the advisor before the NDWEQTA pricing decision is finalized.
+
+---
+
 ## Updated recommendation hierarchy
 
 Now armed with the comprehensive pricing, here is the revised pick order:
