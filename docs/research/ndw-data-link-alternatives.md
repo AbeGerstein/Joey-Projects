@@ -352,9 +352,36 @@ These are alternatives to building the P&F engine ourselves. They come with P&F 
 
 ## Side-by-side: what Norgate-only delivers vs what NDWEQTA delivers
 
-> **Important framing — NDWEQTA is NOT a complete data solution on its own.** NDWEQTA contains DWA's analysis outputs (signals, RS rankings, Technical Attributes score) keyed by (stock, date). It does not contain raw OHLC. Any NDWEQTA-based architecture **also requires an OHLC vendor** underneath it — for chart rendering in the daily report, for our P&F engine to construct the X/O cells the advisor sees, and for backtesting forward returns in Phase 4. The cost tables throughout this document reflect this — NDWEQTA stacks always pair the proprietary feed with Norgate (or another OHLC source) at the OHLC layer.
+> **Important framing — NDWEQTA is NOT a complete data solution on its own.** NDWEQTA contains DWA's analysis outputs (signals, RS rankings, Technical Attributes score) keyed by (stock, date). It does not contain raw OHLC. Any NDWEQTA-based architecture **also requires a separate OHLC subscription** underneath it — for chart rendering in the daily report, for our P&F engine to construct the X/O cells the advisor sees, and for backtesting forward returns in Phase 4. The cost tables throughout this document reflect this.
 >
-> This means the cost question is not "what does NDWEQTA cost?" but **"what does NDWEQTA cost *as an upgrade* to the Norgate-only baseline?"** — i.e., is the authoritative DWA TA score and signal feed worth its quoted price *on top of* the Norgate cost we're paying regardless?
+> The OHLC subscription can come from the same Nasdaq Data Link marketplace (see [OHLC options on Nasdaq Data Link](#ohlc-options-on-nasdaq-data-link-platform-research-confirmed-2026-05-17) below) or from an external vendor like Norgate. Operationally one Nasdaq Data Link account managing both NDWEQTA + an OHLC database is cleaner than two separate vendor relationships, but there is **no cross-database bundle discount on Nasdaq Data Link** — each database is billed independently. The cost question is the same either way.
+>
+> The decision question is not "what does NDWEQTA cost?" but **"what does NDWEQTA cost *as an upgrade* to the OHLC-only baseline?"** — i.e., is the authoritative DWA TA score and signal feed worth its quoted price *on top of* the OHLC cost we're paying regardless?
+
+### OHLC options on Nasdaq Data Link platform (research confirmed 2026-05-17)
+
+For the NDWEQTA path specifically, the cleanest OHLC pairing is another database on the same Nasdaq Data Link marketplace — one account, one API key, one invoice covering both line items.
+
+| Database | Publisher | Coverage | Pricing | Notes |
+|---|---|---|---|---|
+| **SHARADAR/SEP** | Sharadar | Daily OHLC US equities, survivorship-bias-free, delisted names included, history since Dec 1998, refreshed daily | **Sales-quoted (no public price)** | Cleanest fit alongside NDWEQTA. Has `isdelisted` flag and stable `permaticker` identifier — strong for backtesting. URL: <https://data.nasdaq.com/databases/SEP> |
+| **SHARADAR/SFB** bundle | Sharadar | SEP + SFP (equities + fund prices) combined | Sales-quoted, discounted vs purchasing separately | If the advisor ever wants fund coverage |
+| **QUOTEMEDIA/NAEOD** | QuoteMedia | Daily OHLC US equities, broader exchange coverage (NYSE + NASDAQ + AMEX + Arca), history since 1996 | Sales-quoted | Alternative to Sharadar; broader Arca coverage. URL: <https://data.nasdaq.com/databases/NAEOD> |
+| ~~WIKI~~ | (legacy Quandl) | (formerly free US OHLC) | **Deprecated April 2018** | Frozen, unmaintained — do not use |
+| Tiingo on Nasdaq Data Link | — | — | — | **Does not exist.** Tiingo distributes directly through tiingo.com only |
+
+**Pricing reality:** Sharadar SEP no longer displays a public price tile on the marketplace; pre-2021 third-party references cited "from $50/month personal, $100/month early-stage developer," but these are Quandl-era and stale. Current 2026 pricing requires a sales quote. The advisor should ask for it on the same call where he gets NDWEQTA pricing.
+
+**Professional-tier classification applies.** The "personal" Sharadar tier that existed in the Quandl era is restricted to non-registered hobbyists; an RIA cannot license it. Professional pricing is the only relevant number for this project.
+
+**No platform bundling.** Per Nasdaq Data Link's FAQ, subscriptions are strictly a la carte — there is no cross-publisher discount when subscribing to NDWEQTA + Sharadar SEP together. Both line items appear on one invoice but are priced independently. The operational benefit (single API key, single billing relationship) is real; the financial benefit is zero.
+
+**When the Nasdaq sales callback arrives**, ask for quotes on:
+1. NDWEQTA (single-advisor seat, internal screener use)
+2. SHARADAR/SEP (same seat / professional)
+3. Whether either offers a trial or evaluation period
+
+Then compare against the Norgate-external-vendor path on both cost and operational simplicity.
 
 A common question: if we go with the Norgate-only path to save cost, what specifically do we lose versus NDWEQTA? The honest answer is: **only DWA's proprietary Technical Attributes composite score (0–5).** Everything else can be computed by our P&F engine from Norgate's OHLC.
 
