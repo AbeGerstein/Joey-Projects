@@ -42,7 +42,19 @@ The DWA Terms of Use prohibit scraping the platform under any circumstances, eve
 - **Licensed API access** (Nasdaq Data Link NDW databases) is legitimate and the highest-fidelity route, at incremental cost.
 - **Replicating the methodology from raw OHLC** is legitimate — the math is public and the inputs (price data) are independently licensed.
 
-The current proposed path is **replication from raw OHLC** ([OQ-002](02-open-questions.md#oq-002-dwa-access-path)) — which avoids any DWA-licensing question entirely. The OHLC vendor's terms (Polygon.io, Tiingo, etc.) must still be reviewed.
+The current proposed path is **replication from raw OHLC** ([OQ-002](02-open-questions.md#oq-002-dwa-access-path)) — which avoids any DWA-licensing question entirely. The OHLC vendor's terms must still be reviewed.
+
+## Data licensing — OHLC and market data vendors
+
+The advisor is classified as a **Professional Subscriber** by every standard industry definition (registered, compensated for securities work). This classification is about *who he is*, not about whether the bot's output gets shared with anyone. It applies to every market data vendor he subscribes to, regardless of how the data is used downstream.
+
+**Practical implications:**
+- Cannot use a vendor's "personal" or "non-commercial" tier even if the bot's output stays on his computer — the subscriber-status line is the person, not the use case
+- Must answer professional-status questions truthfully at signup
+- Vendors whose entry pricing accommodates professional advisor use (Norgate, Alpaca Algo Trader Plus, Marketstack Basic with commercial language, EODHD Commercial Internal-Use, AmiBroker) are the viable options
+- Vendors whose retail tier prohibits commercial use (Polygon retail, Tiingo Power) are off-limits regardless of how the data is used
+
+Full vendor analysis and the professional-vs-non-professional explanation: [research/ndw-data-link-alternatives.md](research/ndw-data-link-alternatives.md).
 
 ---
 

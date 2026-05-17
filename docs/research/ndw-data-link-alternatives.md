@@ -6,6 +6,33 @@ This document evaluates alternatives to licensing the Nasdaq Data Link NDWEQTA d
 
 > **Critical compliance note up front:** This is an automated screener built for a financial advisor's *commercial* use. Several otherwise-attractive vendors restrict their cheaper tiers to **personal / non-commercial** use only. Those tiers cannot be used here — automated commercial use would breach the ToS regardless of how small the operation is. Every option below has its commercial-use posture explicitly flagged.
 
+### A clarification: "professional" classification is about who the subscriber is, not about whether the output is shared
+
+A common misconception: that a tool whose output stays entirely on the advisor's computer (no clients see it, no distribution) qualifies for a vendor's "personal" or "non-commercial" tier. **This is not how data vendor terms work.**
+
+The professional / non-professional classification is defined by the **subscriber's status**, not by the use case for any particular output:
+
+- **Professional Subscriber** = anyone who is registered with the SEC/FINRA/state regulators, employed in the securities industry, or compensated for activities involving securities analysis or management
+- **Non-Professional Subscriber** = effectively a retail investor managing only their own money outside the securities industry
+
+This is the same classification framework the SEC and the exchanges (NYSE, NASDAQ) use for market data fees. It is consistent across the industry.
+
+**Implication for this project:** a registered financial advisor is a Professional Subscriber by default — regardless of whether the bot's reports get shared with anyone. This means:
+
+- Polygon's $29/mo Stocks Starter cannot be used — Polygon individual ToS forbids commercial use, and the advisor's professional status places him in the commercial category.
+- Tiingo Power ($30/mo) cannot be used — that tier is explicitly individual-use-only.
+- Any vendor whose pricing distinguishes "non-professional" from "professional" requires the professional tier.
+
+**However,** several vendors don't penalize professional status at all in their entry pricing. Those are the vendors that fit this project:
+
+- Marketstack Basic ($9.99/mo) permits commercial use at that price
+- Norgate Data Platinum ($53/mo) accommodates professional advisor use at the listed price
+- Alpaca Algo Trader Plus ($99/mo) includes a commercial license
+- EODHD Commercial Internal-Use ($399/mo) is explicitly priced for this use case
+- AmiBroker (one-time $299) permits professional use
+
+**Action to take:** when subscribing to any vendor under serious consideration, answer their professional-status question truthfully. The vendors above will accept the advisor at the listed price. Trying to claim non-professional status at a vendor that would re-classify the advisor as professional is a ToS violation that can result in account termination plus retroactive billing at the professional rate. The audit-trail exposure is not worth the savings versus the vendors above.
+
 ---
 
 ## Why this matters now
