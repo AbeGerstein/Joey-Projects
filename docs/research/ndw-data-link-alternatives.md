@@ -66,7 +66,33 @@ These thresholds are working judgments. The advisor should review them.
 
 The vendors below are organized by category and ordered roughly by fit for this project (best fit first within each category).
 
-### A0. Existing DWA platform subscription + daily manual CSV export — **strong v1 candidate**
+### A0a. Existing DWA platform subscription + manual CSV export, **NO additional OHLC vendor** — the "free" path
+
+**This is a substantial downgrade in bot capability.** Documented here for completeness, but it materially compromises the bot's analytical value. Read [A0b](#a0b-existing-dwa-platform-subscription--daily-manual-csv-export--norgate-for-ohlc--strong-v1-candidate) below for the recommended version of the manual-export path.
+
+**Cost:** $0 incremental (uses existing DWA subscription, no OHLC vendor).
+
+**What the bot becomes without OHLC:**
+
+| Capability | With OHLC | Free path (no OHLC) |
+|---|---|---|
+| P&F charts in daily report | ✅ rendered | ❌ no chart visualization possible |
+| Pre-momentum pattern detection (7 patterns from methodology) | ✅ all 7 | ⚠️ only ~2 of 7 — most patterns need chart geometry we can't reconstruct |
+| In-momentum pattern detection | ✅ all patterns | ⚠️ subset (based on DWA's pre-digested fields only) |
+| Backtesting | ✅ full | ❌ none — exports are point-in-time, no historical OHLC to replay against |
+| Composite weight tuning against historical performance | ✅ via backtest | ❌ no backtest = no tuning = deploy on theory alone |
+| Freshness detection (new patterns last night) | ✅ detailed | ⚠️ limited to whatever change events the DWA export surfaces |
+| Own-engine cross-check against DWA's outputs | ✅ daily auto-validation | ❌ 100% dependent on DWA's exported fields being correct |
+
+**What the bot effectively becomes:** a filtered, ranked view of the daily DWA CSV export, delivered as a PDF. Not nothing — it saves the advisor time vs scrolling the platform himself, applies a composite score across DWA's fields, and can highlight signal-change events. But it is **a fraction of the analytical screener** the rest of this project's design contemplates. The advisor with Excel filters on the same CSV could replicate ~70% of the free-path bot's value in 10 minutes.
+
+**Honest framing:** the marginal cost of OHLC (Norgate $53/month, $636/year) is the difference between an analytical screener and a filtered Excel view. For a wealth-management advisor whose hourly cost exceeds this many times over, the $53/month is the cheapest thing about the project. Skipping it to save $636/year while gutting ~70% of the bot's capability is a poor trade — the bot wouldn't be doing much the advisor couldn't do himself in 10 minutes a day.
+
+**One thing to verify before settling:** does the advisor's DWA platform export include raw OHLC columns (Close, Open, High, Low, Volume) alongside the signal fields? Most pure technical-analysis platforms don't (they export *analysis*, not prices), but it's worth checking. If yes — and especially if historical price exports are available — the free path becomes meaningfully more viable.
+
+---
+
+### A0b. Existing DWA platform subscription + daily manual CSV export + Norgate for OHLC — **strong v1 candidate**
 
 This option uses the advisor's *existing* NDW Research Platform subscription (paid for as part of his standard DWA access) to get authoritative DWA data without licensing NDWEQTA. Manual CSV exports from the platform UI are an explicit, ToS-permitted feature.
 
