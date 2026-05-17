@@ -204,6 +204,16 @@ Format for each entry:
 
 ---
 
+## 2026-05-17 — Revived: existing-DWA-subscription + manual export path (informs OQ-002)
+
+- **Decision (informational):** The "use the existing DWA Research Platform subscription via daily manual CSV exports" path — previously dismissed as incompatible with the daily cadence — has been re-evaluated and elevated to the **strongest v1 candidate** pending verification of the platform's export capabilities. See expanded [Option A0 in research/ndw-data-link-alternatives.md](research/ndw-data-link-alternatives.md#a0-existing-dwa-platform-subscription--daily-manual-csv-export--strong-v1-candidate).
+- **Rationale:** Reconsidered on 2026-05-17 after the user asked whether the existing DWA subscription could be leveraged. Manual CSV exports from the platform UI are an explicit, ToS-permitted feature. A 5–10 minute daily export step by the advisor is a workable trade-off versus paying for NDWEQTA at whatever price comes back. The workflow has the bot consume CSVs the advisor drops in a watched folder — the bot itself never touches DWA, fully ToS-compliant.
+- **Status:** Pending advisor verification — he needs to confirm 4 things in his platform login: (1) can define a universe-wide screener with all relevant fields, (2) can export it as a single CSV, (3) BPI views are exportable, (4) total daily export effort is < 10 minutes.
+- **Impact on OQ-002:** Reframes the NDWEQTA decision from "license at any price" to "is the daily-step automation worth $X/mo (NDWEQTA quote)?" This raises the bar for licensing NDWEQTA — even at low prices, the manual-export path now provides a viable alternative.
+- **Cost implication:** Total stack ~$63/mo (Norgate for OHLC + existing DWA subscription + hosting) — beats every NDWEQTA-inclusive path and uses zero incremental DWA-side spend.
+
+---
+
 ## 2026-05-16 — Two-section report: pre-momentum AND in-momentum, with freshness emphasis
 
 - **Decision:** The daily report has two main sections instead of one:

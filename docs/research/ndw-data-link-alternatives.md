@@ -66,6 +66,71 @@ These thresholds are working judgments. The advisor should review them.
 
 The vendors below are organized by category and ordered roughly by fit for this project (best fit first within each category).
 
+### A0. Existing DWA platform subscription + daily manual CSV export — **strong v1 candidate**
+
+This option uses the advisor's *existing* NDW Research Platform subscription (paid for as part of his standard DWA access) to get authoritative DWA data without licensing NDWEQTA. Manual CSV exports from the platform UI are an explicit, ToS-permitted feature.
+
+**The workflow:**
+
+1. Each morning (or evening), the advisor logs into dorseywright.nasdaq.com and runs his standard screens / watchlists.
+2. He clicks "Export to CSV" on the relevant views — RS Matrix, custom universe screener, watchlists with full field set.
+3. He drops the CSVs into a known folder (local on the host VM, or a synced folder like Dropbox / Google Drive accessible to the bot's host).
+4. The bot watches that folder and consumes whatever CSVs are present. **The bot itself never touches the DWA platform** — no login automation, no scraping.
+5. The bot's daily run combines the advisor's DWA exports with OHLC from a separate vendor and produces the daily report.
+
+**Data coverage:**
+
+| Data we need | DWA platform exports? |
+|---|---|
+| P&F signal status, signal dates | ✅ Yes (standard export field) |
+| Trend posture (above support / below resistance) | ✅ Yes |
+| RS rankings + RS buy/sell signals | ✅ Yes |
+| **Technical Attributes composite score (0–5)** | ✅ Yes |
+| DWA sector classifications | ✅ Yes |
+| Bullish Percent Index series | ⚠️ Depends on which views have CSV export — confirm with login |
+| Raw OHLC | ❌ Not in platform exports — still need OHLC vendor |
+| Historical data for backtest | ❌ Exports are point-in-time snapshots only |
+
+**Costs:**
+
+| Item | Monthly |
+|---|---|
+| Existing DWA Research Platform subscription | $0 (already paid) |
+| OHLC vendor (Norgate Data Platinum) | ~$53 |
+| Hosting | ~$10 |
+| **Total** | **~$63** |
+
+**Pros:**
+
+- Cheapest path that includes authoritative DWA data and the TA score
+- Fully ToS-compliant — manual exports are an explicit platform feature
+- No NDWEQTA quote dependency, no waiting on Nasdaq sales
+
+**Cons:**
+
+- Daily human step (5–10 minutes) — bot has stale data if advisor doesn't export
+- No backfilled DWA history — backtests must use our self-computed signals, not DWA's historical signal series
+- Schema-fragile — if DWA changes export column names, the bot's parser must update
+- Export-row limits may exist (some platforms cap CSV downloads at 500–1000 rows; if so, multiple exports must be stitched)
+
+**Verification steps before committing to this path:**
+
+The advisor should spend ~15 minutes in his actual platform login to confirm:
+1. He can define a screener returning every US equity (with $1 price floor) and all relevant fields — current signal, signal date, trend, RS rank, TA score, sector
+2. He can export that screen as a single CSV (or determine the row cap if there is one)
+3. Bullish Percent Index views (universe + sector) have export buttons
+4. Total export effort is realistically under 10 minutes per day
+
+If those answers are favorable, **this becomes the recommended v1 path** until/unless the Nasdaq callback comes back with cheaper-than-expected NDWEQTA pricing.
+
+**Mitigations for the "advisor on vacation" problem:**
+
+- Train a junior staffer on the export checklist — should be a written 1-page SOP
+- Bot tolerates 1–2 day stale DWA data with a flag in the report header
+- Bot alerts the advisor by email if no CSV has arrived in the watch folder by some time T
+
+---
+
 ### A. OHLC data vendors (for the build-it-ourselves path)
 
 Pure price data. Combined with our own P&F engine, this gives us everything except DWA's proprietary TA score.
@@ -448,6 +513,14 @@ Total: **~$50–$150/mo**. Build the full P&F + RS + BPI + pre-momentum/in-momen
 ### If absolute minimum cost matters
 
 **Marketstack Basic ($9.99/mo) + AmiBroker ($299 one-time) + Norgate ($53/mo)** = ~$63/mo after the first month. Trade-off: AmiBroker workflow is Windows-centric and AFL-based rather than Python-based, but the cost savings are real.
+
+### If the advisor's daily 5–10 minute export effort is acceptable — **strongest v1 path**
+
+**Existing DWA Research Platform subscription (already paid) + manual CSV export workflow + Norgate Data Platinum for OHLC ($53/mo) + advisor's own DWA platform for ad-hoc cross-checks.**
+
+Total monthly: **~$63**. Captures authoritative DWA signals, RS rankings, and Technical Attributes score at zero incremental DWA-side cost. The trade-off is a small daily human step — see [Option A0](#a0-existing-dwa-platform-subscription--daily-manual-csv-export--strong-v1-candidate) for the full workflow and verification checklist.
+
+This path materially changes the NDWEQTA decision: instead of "should we license NDWEQTA at any price?" the question becomes "is automating the daily DWA data step worth $X/mo?" — where $X is the NDWEQTA quote and the alternative is 5–10 minutes/day of the advisor's time.
 
 ### What to skip entirely
 
