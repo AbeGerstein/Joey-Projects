@@ -22,6 +22,13 @@ from pnf_bot.pnf.box_scaling import (
     TraditionalScaling,
 )
 from pnf_bot.pnf.chart import construct_chart
+from pnf_bot.pnf.signals import (
+    Signal,
+    SignalDirection,
+    SignalType,
+    detect_signals,
+    latest_signal,
+)
 from pnf_bot.pnf.types import Column, ColumnType, PnFChart
 
 __all__ = [
@@ -30,6 +37,11 @@ __all__ = [
     "ColumnType",
     "PercentageScaling",
     "PnFChart",
+    "Signal",
+    "SignalDirection",
+    "SignalType",
     "TraditionalScaling",
     "construct_chart",
+    "detect_signals",
+    "latest_signal",
 ]

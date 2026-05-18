@@ -118,6 +118,8 @@ class _ChartBuilder:
         self._cur_box: Decimal | None = None
         self._cur_start: object | None = None
         self._cur_end: object | None = None
+        # Per-column history: (date, new_extreme) tuples for each extension
+        self._cur_history: list[tuple[object, Decimal]] = []
 
     def process_bar(self, trade_date, high: Decimal, low: Decimal) -> None:  # noqa: ANN001
         if self._cur_type is None:
@@ -164,6 +166,8 @@ class _ChartBuilder:
         self._cur_box = scaling.box_size_at(bottom)
         self._cur_start = trade_date
         self._cur_end = trade_date
+        # Record the column's initial extreme in history
+        self._cur_history = [(trade_date, top)]
 
     # ------------------------------------------------------------------
     # X column processing
@@ -180,6 +184,7 @@ class _ChartBuilder:
             new_top = self._snap_floor_with_box(high, box)
             self._cur_top = new_top
             self._cur_end = trade_date
+            self._cur_history.append((trade_date, new_top))
             return
 
         # Can we reverse? Yes if today's low is at least reversal_boxes below the top.
@@ -202,6 +207,7 @@ class _ChartBuilder:
                 self._cur_bottom = self._cur_top
             self._cur_start = trade_date
             self._cur_end = trade_date
+            self._cur_history = [(trade_date, self._cur_bottom)]
             return
 
         # Otherwise: no change
@@ -222,6 +228,7 @@ class _ChartBuilder:
             new_bottom = self._snap_floor_with_box(low, box)
             self._cur_bottom = new_bottom
             self._cur_end = trade_date
+            self._cur_history.append((trade_date, new_bottom))
             return
 
         # Can we reverse? Yes if today's high is at least reversal_boxes above the bottom.
@@ -242,6 +249,7 @@ class _ChartBuilder:
                 self._cur_top = self._cur_bottom
             self._cur_start = trade_date
             self._cur_end = trade_date
+            self._cur_history = [(trade_date, self._cur_top)]
             return
 
         return
@@ -266,6 +274,7 @@ class _ChartBuilder:
             box_size=self._cur_box,
             start_date=self._cur_start,
             end_date=self._cur_end,
+            extension_history=tuple(self._cur_history),
         )
         self._completed.append(column)
 

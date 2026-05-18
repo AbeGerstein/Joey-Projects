@@ -31,6 +31,11 @@ class Column:
     - `box_size` is fixed at the column's start and does NOT change mid-column,
       even if price crosses a traditional-scaling tier boundary. This matches
       Dorsey's rule (re-evaluate box size only when starting a new column).
+    - `extension_history` records every date on which the column reached a
+      new extreme (new top for X columns, new bottom for O columns). The
+      first entry is (start_date, initial_extreme). Subsequent entries
+      capture each later extension. Used by signal detectors to identify
+      the precise date a signal fired.
     """
 
     type: ColumnType
@@ -39,6 +44,7 @@ class Column:
     box_size: Decimal
     start_date: date
     end_date: date
+    extension_history: tuple[tuple[date, Decimal], ...] = ()
 
     def __post_init__(self) -> None:
         if self.top < self.bottom:
@@ -51,6 +57,28 @@ class Column:
             raise ValueError(
                 f"Column start_date ({self.start_date}) must be <= end_date ({self.end_date})"
             )
+
+    def date_when_extreme_reached(self, threshold: Decimal) -> date | None:
+        """Return the first date on which the column reached or exceeded `threshold`.
+
+        For X columns: returns the first date when top >= threshold.
+        For O columns: returns the first date when bottom <= threshold.
+
+        Returns None if the column never reached the threshold (or if
+        extension_history is empty — a legacy column built without history
+        tracking). The caller can fall back to end_date in that case.
+        """
+        if not self.extension_history:
+            return None
+        if self.type == "X":
+            for d, level in self.extension_history:
+                if level >= threshold:
+                    return d
+        else:
+            for d, level in self.extension_history:
+                if level <= threshold:
+                    return d
+        return None
 
     @property
     def height_boxes(self) -> int:
