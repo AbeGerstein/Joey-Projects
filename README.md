@@ -59,6 +59,7 @@ This repository contains the canonical project documentation. Read these in roug
 | [docs/research/dwa-access.md](docs/research/dwa-access.md) | How to legitimately access DWA data — APIs, exports, ToS, alternatives |
 | [docs/research/ndw-data-link-pricing.md](docs/research/ndw-data-link-pricing.md) | NDWEQTA coverage and pricing investigation |
 | [docs/research/ndw-data-link-alternatives.md](docs/research/ndw-data-link-alternatives.md) | Alternatives to NDWEQTA if pricing is prohibitive |
+| [docs/research/dwa-sales-call-checklist.md](docs/research/dwa-sales-call-checklist.md) | Phone-call checklist for the Nasdaq sales conversation |
 | [docs/data-sources.md](docs/data-sources.md) | Evaluation of OHLC, fundamentals, and DWA data vendors |
 | [docs/tech-stack.md](docs/tech-stack.md) | Language, libraries, storage, scheduler, reporting |
 
