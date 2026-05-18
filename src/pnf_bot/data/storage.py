@@ -122,6 +122,38 @@ class SignalState(Base):
     )
 
 
+class LiveRecommendationRow(Base):
+    """Tracks every name the bot surfaced in a live daily report.
+
+    Forward returns are populated lazily by `update_forward_returns` once
+    sufficient OHLC history exists. The performance-vs-backtest comparison
+    happens off this table.
+    """
+
+    __tablename__ = "live_recommendations"
+
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    recommended_at: Mapped[date] = mapped_column(Date, nullable=False)
+    symbol: Mapped[str] = mapped_column(String(20), nullable=False)
+    section: Mapped[str] = mapped_column(String(20), nullable=False)  # "pre_momentum" / "in_momentum"
+    primary_pattern: Mapped[str | None] = mapped_column(String(60))
+    final_score: Mapped[Decimal] = mapped_column(Numeric(10, 4), nullable=False)
+    fired_last_night: Mapped[bool] = mapped_column(Boolean, default=False)
+    entry_price: Mapped[Decimal | None] = mapped_column(Numeric(12, 4))
+
+    # Forward returns filled in later via update_forward_returns()
+    return_1m: Mapped[Decimal | None] = mapped_column(Numeric(8, 4))
+    return_3m: Mapped[Decimal | None] = mapped_column(Numeric(8, 4))
+    return_6m: Mapped[Decimal | None] = mapped_column(Numeric(8, 4))
+    return_12m: Mapped[Decimal | None] = mapped_column(Numeric(8, 4))
+
+    __table_args__ = (
+        UniqueConstraint("recommended_at", "symbol", "section",
+                         name="uq_live_rec_date_symbol_section"),
+        Index("ix_live_rec_date", "recommended_at"),
+    )
+
+
 class ReportArchive(Base):
     """One row per report generated. Required for the audit trail.
 

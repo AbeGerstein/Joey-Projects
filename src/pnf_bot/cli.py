@@ -104,19 +104,165 @@ def refresh_prices(cfg) -> None:  # noqa: ANN001
 def daily_run(cfg) -> None:  # noqa: ANN001
     """Full overnight pipeline — data refresh + analysis + report generation + email.
 
-    PLACEHOLDER: phases 2-5 are not yet implemented. Today this command runs only
-    the data layer (refresh universe + refresh prices). The analysis and reporting
-    steps will be added incrementally as Phases 2, 4, and 5 land.
+    Steps:
+    1. Refresh universe metadata from Norgate
+    2. Pull the latest OHLC bars (incremental)
+    3. Run scoring over the universe (Section A pre-momentum + Section B in-momentum)
+    4. Compile per-stock details and render HTML + PDF
+    5. Send email to the advisor with the PDF attached
+    6. Persist the report and delivery outcome to the audit log
+
+    Errors at any step are logged and the audit row records the failure.
     """
-    log.info("Daily run starting")
-    storage.init_database(cfg.data.db_path)
-    universe.refresh_universe(cfg)
-    prices.refresh_latest_prices(cfg)
-    # TODO(phase-2): compute P&F engine output for the universe
-    # TODO(phase-4): apply pre-momentum and in-momentum scoring
-    # TODO(phase-5): render and email the daily PDF report
-    log.info("Daily run complete (data layer only — phases 2-5 pending)")
-    click.echo("Daily run complete (data layer only — phases 2-5 pending implementation).")
+    from datetime import date
+
+    from pnf_bot.data import norgate, prices, storage as storage_mod, universe
+    from pnf_bot.feedback import record_recommendation
+    from pnf_bot.pnf import construct_chart, construct_rs_chart
+    from pnf_bot.report import (
+        SmtpConfig,
+        compile_stock_detail,
+        persist_report_to_audit_log,
+        render_html_report,
+        render_pdf_report,
+        send_report_email,
+    )
+    from pnf_bot.scoring.composite import (
+        build_daily_report,
+        score_stock_in_momentum,
+        score_stock_pre_momentum,
+    )
+
+    today = date.today()
+    log.info("Daily run starting for %s", today)
+    storage_mod.init_database(cfg.data.db_path)
+
+    # Step 1+2: data refresh
+    try:
+        universe.refresh_universe(cfg)
+        prices.refresh_latest_prices(cfg)
+    except norgate.NorgateNotConfiguredError as e:
+        log.error("Norgate not configured: %s", e)
+        click.echo(f"ERROR: Norgate not configured: {e}", err=True)
+        sys.exit(3)
+
+    # Step 3: scoring
+    log.info("Scoring universe")
+    active_symbols = universe.get_active_universe(cfg)
+    benchmark = None
+    try:
+        benchmark = norgate.fetch_benchmark_ohlc(benchmark_symbol=cfg.norgate.benchmark_symbol)
+    except norgate.NorgateNotConfiguredError:
+        log.warning("Benchmark fetch failed; running without RS data")
+
+    candidates = []
+    for sym in active_symbols:
+        try:
+            ohlc = norgate.fetch_ohlc(sym, adjustment=cfg.norgate.price_adjustment)
+        except Exception:  # noqa: BLE001
+            continue
+        if ohlc.empty or len(ohlc) < 20:
+            continue
+        try:
+            price_chart = construct_chart(sym, ohlc)
+            rs_chart = (
+                construct_rs_chart(sym, ohlc, benchmark) if benchmark is not None else None
+            )
+        except Exception:  # noqa: BLE001
+            continue
+        pre = score_stock_pre_momentum(sym, price_chart, rs_chart, as_of_date=today)
+        if pre is not None:
+            candidates.append((pre, price_chart, rs_chart))
+        in_mom = score_stock_in_momentum(sym, price_chart, rs_chart, as_of_date=today)
+        if in_mom is not None:
+            candidates.append((in_mom, price_chart, rs_chart))
+
+    report = build_daily_report(
+        [c[0] for c in candidates],
+        as_of_date=today,
+        section_a_top_n=cfg.scoring.section_a_top_n,
+        section_b_top_n=cfg.scoring.section_b_top_n,
+    )
+    log.info(
+        "Built report: %d Section A, %d Section B, %d new last night",
+        len(report.section_a_top_n),
+        len(report.section_b_top_n),
+        len(report.new_patterns_last_night),
+    )
+
+    # Step 4: compile details + render
+    section_a_details = []
+    for cand in report.section_a_top_n:
+        for c, pc, rc in candidates:
+            if c.symbol == cand.symbol and c.section == cand.section:
+                section_a_details.append(compile_stock_detail(c, pc, rc))
+                break
+    section_b_details = []
+    for cand in report.section_b_top_n:
+        for c, pc, rc in candidates:
+            if c.symbol == cand.symbol and c.section == cand.section:
+                section_b_details.append(compile_stock_detail(c, pc, rc))
+                break
+    html = render_html_report(report, section_a_details, section_b_details)
+    pdf_bytes = None
+    try:
+        pdf_bytes = render_pdf_report(report, section_a_details, section_b_details)
+    except RuntimeError as e:
+        log.warning("PDF rendering failed (WeasyPrint missing?): %s", e)
+
+    # Step 5: deliver
+    smtp = SmtpConfig(
+        host=cfg.email.smtp_host,
+        port=cfg.email.smtp_port,
+        username=cfg.email.smtp_user,
+        password=cfg.email.smtp_password,
+        from_address=cfg.email.smtp_from,
+        use_tls=cfg.email.smtp_use_tls,
+    )
+    delivery_result = send_report_email(
+        smtp_config=smtp,
+        recipient_email=cfg.report.recipient_email,
+        subject_line=f"{cfg.report.subject_line} — {today}",
+        html_body=html,
+        pdf_bytes=pdf_bytes,
+    )
+    if delivery_result.success:
+        log.info("Email delivered to %s", delivery_result.recipient)
+    else:
+        log.error("Email delivery failed: %s", delivery_result.error_message)
+
+    # Step 6: persist audit log
+    persist_report_to_audit_log(
+        db_path=cfg.data.db_path,
+        report_date=today,
+        recipient_email=cfg.report.recipient_email,
+        subject_line=f"{cfg.report.subject_line} — {today}",
+        html_content=html,
+        pdf_bytes=pdf_bytes,
+        archive_dir=cfg.report.archive_dir,
+        parameter_snapshot={
+            "section_a_top_n": cfg.scoring.section_a_top_n,
+            "section_b_top_n": cfg.scoring.section_b_top_n,
+            "benchmark_symbol": cfg.norgate.benchmark_symbol,
+            "price_adjustment": cfg.norgate.price_adjustment,
+            "min_price": cfg.data.min_price,
+        },
+        candidate_count_section_a=len(report.section_a_top_n),
+        candidate_count_section_b=len(report.section_b_top_n),
+        candidate_count_new_last_night=len(report.new_patterns_last_night),
+        delivery_result=delivery_result,
+    )
+
+    # Step 7: feedback tracking
+    for cand in report.section_a_top_n:
+        record_recommendation(cfg.data.db_path, today, cand)
+    for cand in report.section_b_top_n:
+        record_recommendation(cfg.data.db_path, today, cand)
+
+    log.info("Daily run complete")
+    click.echo(f"Daily run complete. Section A: {len(report.section_a_top_n)}, "
+               f"Section B: {len(report.section_b_top_n)}, "
+               f"delivery: {'sent' if delivery_result.success else 'failed'}")
 
 
 if __name__ == "__main__":
