@@ -119,7 +119,7 @@ The bot does not memorize prior classifications. Each day's report is built fres
 
 - Section B is implemented as a parallel pipeline alongside Section A in Phase 4 (see [00-project-outline.md](../00-project-outline.md)). Same data inputs, different pattern detectors, different scoring weights.
 - The daily report renders both sections per [Phase 5 spec](../00-project-outline.md#phase-5--reporting--delivery).
-- The advisor can configure how many candidates appear in each section (default suggestion: top 25 in Section A, top 25 in Section B).
+- The advisor can configure how many candidates appear in each section (default suggestion: top 10 in Section A, top 10 in Section B).
 - The exclusion rules above ensure Section B is curated — chasing late-stage moves is a known failure mode in trading, and the bot should not enable it.
 
 ---

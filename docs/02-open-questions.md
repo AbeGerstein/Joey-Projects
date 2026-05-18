@@ -64,6 +64,16 @@ Each item is tagged with:
 
 ---
 
+## OQ-010: Norgate sector classification — research pending
+
+- **Question:** Does Norgate Data expose GICS sectors directly, or its own proprietary classification? What granularity (sector / industry group / industry / sub-industry) is available via the Python SDK? Are historical sector assignments tracked?
+- **Blocking?** Yes for Phase 2 BPI sector aggregation (computing sector BPIs requires reliable sector tags per stock)
+- **Owner:** Developer (research dispatched 2026-05-18); Advisor (decision if a non-GICS taxonomy needs review)
+- **Asked:** 2026-05-18
+- **Notes:** Findings will be captured in `docs/research/norgate-data.md` (forthcoming). If Norgate uses a non-GICS taxonomy, decide whether to (a) map it to GICS via a translation table, (b) use Norgate's native taxonomy directly, or (c) source GICS from a separate vendor.
+
+---
+
 ## ~~OQ-009: Liquidity floor for the universe~~ — RESOLVED 2026-05-16
 
 - **Resolution:** $1 minimum price floor, no explicit volume filter. See [decisions log 2026-05-16](01-decisions-log.md#2026-05-16--universe-liquidity-floor-1-minimum-price-no-explicit-volume-floor-resolves-oq-009).

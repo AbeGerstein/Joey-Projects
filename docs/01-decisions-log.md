@@ -204,6 +204,25 @@ Format for each entry:
 
 ---
 
+## 2026-05-18 — Lock remaining outline items for Phase 1 build start
+
+User decisions captured on 2026-05-18 to close the outline:
+
+- **Hosting:** The bot runs on the **advisor's laptop kept running at his office**. Daily run overnight (so the laptop is idle and the report is ready by morning). Implication: Windows or macOS host (Norgate's SDK supports both; Linux not supported). Scheduler will use the host OS's native scheduler (Windows Task Scheduler or macOS launchd) rather than Linux cron.
+- **Recipient email:** **Jromero816@yahoo.com** (the advisor).
+- **Delivery time:** **8:00 AM Mountain Time** every morning. (Note: 8 AM MT = 10 AM ET, which is 30 minutes *after* market open. The advisor explicitly accepted this — he wants the report at 8 AM MT regardless of market timing.)
+- **Email subject line / branding:** **"Daily PnF stock report"** (use as-is, including the "PnF" capitalization).
+- **Section sizes:** **Top 10 in Section A** (pre-momentum), **Top 10 in Section B** (in-momentum). Down from the earlier default of top 25 each.
+- **Anti-pattern thresholds:** Deferred — current methodology-doc defaults stand as initial values; refined in Phase 4 backtest tuning.
+
+Items still open after this lock-in:
+
+- **Sector classification source under Norgate:** explicit advisor direction is to research Norgate's sector taxonomy. Tracked as new open question OQ-010.
+
+Documents affected: [00-project-outline.md](00-project-outline.md) Phase 5, [methodology/pre-momentum-detection.md](methodology/pre-momentum-detection.md), [methodology/in-momentum-detection.md](methodology/in-momentum-detection.md), [tech-stack.md](tech-stack.md) hosting model.
+
+---
+
 ## 2026-05-18 — DWA access path FINAL: Norgate-only (resolves OQ-002)
 
 - **Decision:** Build the bot on the **Norgate Data Platinum** OHLC feed only. The bot's signals, RS, BPI, and TA-equivalent composite are all computed by our P&F engine. No NDWEQTA license, no manual DWA export workflow, no DWA data in the bot's daily pipeline.

@@ -133,9 +133,11 @@ The daily report has three top-level segments:
 
 **0. New Patterns from Last Night** — a callout at the top of the report listing every stock where any of the 7 pre-momentum patterns *fired on the most recent trading day*. These are time-sensitive opportunities and lead the report regardless of where they sit in the broader composite ranking. Each name appears with the pattern that fired, the date/box level, and a one-line context.
 
-**Section A — Pre-Momentum Candidates** — the main attraction. Stocks identified by the pre-momentum methodology ([methodology/pre-momentum-detection.md](methodology/pre-momentum-detection.md)) as being at the start of a potential move. Default: top 25 by composite pre-momentum score.
+**Section A — Pre-Momentum Candidates** — the main attraction. Stocks identified by the pre-momentum methodology ([methodology/pre-momentum-detection.md](methodology/pre-momentum-detection.md)) as being at the start of a potential move. **Top 10** by composite pre-momentum score (locked 2026-05-18).
 
-**Section B — In-Momentum Candidates** — stocks already in strong, sustainable momentum that the advisor may still want to buy into. Curated per [methodology/in-momentum-detection.md](methodology/in-momentum-detection.md); excludes parabolic/blow-off names. Default: top 25 by composite in-momentum score.
+**Section B — In-Momentum Candidates** — stocks already in strong, sustainable momentum that the advisor may still want to buy into. Curated per [methodology/in-momentum-detection.md](methodology/in-momentum-detection.md); excludes parabolic/blow-off names. **Top 10** by composite in-momentum score (locked 2026-05-18).
+
+**Delivery:** PDF email to **Jromero816@yahoo.com** at **8:00 AM Mountain Time** every morning. Subject: "Daily PnF stock report".
 
 **Per-stock detail (extensive, applies to every entry in Section A and B):**
 

@@ -1,0 +1,74 @@
+# PnF Bot configuration template.
+# Copy this file to config.toml and fill in the values for your environment.
+# config.toml is gitignored — do not commit real credentials.
+
+[data]
+# Path to the SQLite database file the bot persists OHLC, signals, and report state to.
+# On Windows, use forward slashes or escaped backslashes.
+db_path = "data/pnf_bot.db"
+
+# Minimum price floor for the universe ($).
+# Set per the OQ-009 resolution: $1.00.
+min_price = 1.00
+
+# How many years of OHLC history to backfill on first run.
+backfill_years = 10
+
+
+[norgate]
+# Norgate Data Updater desktop app must be installed and authenticated on this host.
+# The Python SDK reads from a local data store the updater maintains; there is no separate API key.
+# See docs/research/norgate-data.md for setup instructions.
+
+# Watchlist name in Norgate that defines the screening universe.
+# Default is "US Equities" — the all-US-listed-common-stocks built-in watchlist.
+universe_watchlist = "US Equities"
+
+# Price adjustment mode for OHLC fetches.
+# Options: "TotalReturn" (splits + dividends), "Capital" (splits only), "None".
+# We want split + dividend adjusted for RS and signal computation.
+price_adjustment = "TotalReturn"
+
+
+[scoring]
+# Number of candidates surfaced in each report section.
+# Locked 2026-05-18.
+section_a_top_n = 10  # pre-momentum
+section_b_top_n = 10  # in-momentum
+
+
+[report]
+# Where the report goes.
+recipient_email = "Jromero816@yahoo.com"
+subject_line = "Daily PnF stock report"
+
+# Delivery time. The bot runs overnight; this controls when the email actually sends.
+# 8:00 AM Mountain Time per advisor direction 2026-05-18.
+delivery_time = "08:00"
+delivery_timezone = "America/Denver"
+
+# Output directory for archived reports.
+archive_dir = "reports/archive"
+
+
+[email]
+# SMTP delivery. For Yahoo recipients, any sane SMTP relay works.
+# If using Gmail SMTP relay, an app-password is required.
+smtp_host = "smtp.example.com"
+smtp_port = 587
+smtp_user = "noreply@example.com"
+smtp_password = "REPLACE_WITH_APP_PASSWORD"
+smtp_from = "PnF Bot <noreply@example.com>"
+smtp_use_tls = true
+
+
+[scheduler]
+# When the analysis pipeline runs (24h clock, host local time).
+# Default: 3:00 AM — overnight, well after market close, well before delivery time.
+run_time = "03:00"
+run_timezone = "America/Denver"
+
+
+[logging]
+log_dir = "logs"
+log_level = "INFO"

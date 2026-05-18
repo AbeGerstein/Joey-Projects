@@ -148,7 +148,7 @@ These are not blocking now but will need answers during Phase 2 and Phase 4 impl
 1. **Exact definition of "extended"** for the trendline-extension anti-pattern. 5 boxes? 10 boxes? Sector-dependent? Best determined by backtest.
 2. **Long-base threshold** — how many sideways columns count as a "long base"? 10? 20? 30? Backtest will tell us.
 3. **Time horizon for "near future" momentum** — the bot is predicting moves "in the near future," but is that 1 month, 3 months, 6 months? Backtest scoring should look at forward returns at multiple horizons and we tune to whichever shows the cleanest signal.
-4. **How many candidates to surface per day** — top 10? Top 25? Top 50? Depends on how many high-quality setups typically exist in a ~6,000-name universe. Best-guess starting point: top 25, adjustable.
+4. **How many candidates to surface per day** — top 10? Top 25? Top 50? Depends on how many high-quality setups typically exist in a ~6,000-name universe. Best-guess starting point: top 10, adjustable.
 
 ---
 
