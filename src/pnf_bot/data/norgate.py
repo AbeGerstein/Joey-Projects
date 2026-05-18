@@ -215,10 +215,13 @@ def list_universe_at(index_name: str, as_of: date, symbol: str) -> bool:
     """
     nd = _require_sdk()
     try:
+        # Note: the norgatedata SDK does NOT accept a `limit` parameter on
+        # this function — passing one raises TypeError. Documented signature:
+        # index_constituent_timeseries(symbol, indexname, padding_setting,
+        # start_date, timeseriesformat, numpy_recarray, pandas_dataframe).
         series = nd.index_constituent_timeseries(
             symbol,
             index_name,
-            limit=-1,
             timeseriesformat="pandas-dataframe",
         )
     except Exception as e:  # noqa: BLE001
@@ -406,10 +409,12 @@ def assert_data_is_fresh(min_acceptable_date: date | None = None) -> date:
     the overnight pipeline to surface stale data before generating a report.
     """
     nd = _require_sdk()
-    # `last_database_update_time` exists in some versions of the SDK;
-    # otherwise we fall back to querying a known-active symbol.
+    # `last_database_update_time` requires a database argument (per the
+    # norgatedata SDK docs). With "US Equities" we get the freshness of
+    # the equity universe specifically. Falls back to a SPY lookup if
+    # the call fails for any reason.
     try:
-        last_update = nd.last_database_update_time()  # type: ignore[attr-defined]
+        last_update = nd.last_database_update_time("US Equities")  # type: ignore[attr-defined]
         if hasattr(last_update, "date"):
             return last_update.date()
         return last_update

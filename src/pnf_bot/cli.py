@@ -45,6 +45,12 @@ def _configure_logging(level: str = "INFO") -> None:
 @click.pass_context
 def main(ctx: click.Context, config_path: str) -> None:
     """PnF Bot — daily Point & Figure stock screener."""
+    # Skip config loading if the user is just asking for help OR running version.
+    # This makes the CLI surface inspectable without needing a valid config first.
+    if "--help" in sys.argv or "-h" in sys.argv or "version" in sys.argv[1:]:
+        ctx.obj = None
+        return
+
     cfg_path = Path(config_path)
     if not cfg_path.exists():
         click.echo(
