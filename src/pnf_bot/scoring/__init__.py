@@ -23,6 +23,15 @@ from pnf_bot.scoring.anti_patterns import (
     evaluate_anti_patterns,
     is_exhausted,
 )
+from pnf_bot.scoring.composite import (
+    CompositeWeights,
+    DailyReport,
+    ScoredCandidate,
+    build_daily_report,
+    freshness_multiplier,
+    score_stock_in_momentum,
+    score_stock_pre_momentum,
+)
 from pnf_bot.scoring.in_momentum import (
     InMomentumPatternType,
     detect_in_momentum_patterns,
@@ -35,14 +44,21 @@ from pnf_bot.scoring.ta_composite import TaComposite, compute_ta_equivalent
 from pnf_bot.scoring.types import PatternMatch
 
 __all__ = [
+    "CompositeWeights",
+    "DailyReport",
     "ExhaustionReason",
     "InMomentumPatternType",
     "PatternMatch",
     "PreMomentumPatternType",
+    "ScoredCandidate",
     "TaComposite",
+    "build_daily_report",
     "compute_ta_equivalent",
     "detect_in_momentum_patterns",
     "detect_pre_momentum_patterns",
     "evaluate_anti_patterns",
+    "freshness_multiplier",
     "is_exhausted",
+    "score_stock_in_momentum",
+    "score_stock_pre_momentum",
 ]
