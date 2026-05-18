@@ -8,9 +8,9 @@ This project is being built for a financial advisor at a wealth management firm.
 
 ## Status
 
-Project initiated **2026-05-15**. Phase 0 (Discovery & Compliance) complete as of **2026-05-18**. Data path locked in: **Norgate Data Platinum** ($53/mo) as the sole OHLC source, with our P&F engine computing all signals, RS, BPI, and a self-built TA-equivalent composite score. The advisor's existing DWA platform subscription remains his personal cross-check tool but is not in the bot's pipeline.
+Project initiated **2026-05-15**. **Functionally complete as of 2026-05-18.** All 6 phases of the build are done; 213 tests passing; ruff clean. The bot can be deployed to the advisor's Windows laptop as soon as the Norgate subscription is activated.
 
-Ready to begin Phase 1 build work pending Norgate subscription activation. See [docs/00-project-outline.md](docs/00-project-outline.md) for the full phased plan with effort estimates per phase.
+See [docs/deployment/README.md](docs/deployment/README.md) for the deployment runbook. See [CLAUDE.md](CLAUDE.md) for the Claude-Code orientation file.
 
 ---
 
@@ -60,6 +60,12 @@ This repository contains the canonical project documentation. Read these in roug
 | [docs/research/ndw-data-link-pricing.md](docs/research/ndw-data-link-pricing.md) | NDWEQTA coverage and pricing investigation |
 | [docs/research/ndw-data-link-alternatives.md](docs/research/ndw-data-link-alternatives.md) | Alternatives to NDWEQTA if pricing is prohibitive |
 | [docs/research/dwa-sales-call-checklist.md](docs/research/dwa-sales-call-checklist.md) | Phone-call checklist for the Nasdaq sales conversation |
+| [docs/research/norgate-data.md](docs/research/norgate-data.md) | Norgate SDK reference: function signatures, conventions, gotchas |
+| [docs/deployment/README.md](docs/deployment/README.md) | **Deployment index** — read this before standing up the bot on a laptop |
+| [docs/deployment/runbook.md](docs/deployment/runbook.md) | Step-by-step deployment procedure for the advisor's Windows laptop |
+| [docs/deployment/troubleshooting.md](docs/deployment/troubleshooting.md) | Every common error and how to fix it |
+| [docs/deployment/maintenance.md](docs/deployment/maintenance.md) | Weekly / monthly / quarterly operational tasks |
+| [docs/deployment/working-with-claude.md](docs/deployment/working-with-claude.md) | Cross-environment workflow (Codespace ↔ laptop) for getting Claude's help with production issues |
 | [docs/data-sources.md](docs/data-sources.md) | Evaluation of OHLC, fundamentals, and DWA data vendors |
 | [docs/tech-stack.md](docs/tech-stack.md) | Language, libraries, storage, scheduler, reporting |
 

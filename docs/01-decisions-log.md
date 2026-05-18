@@ -204,6 +204,20 @@ Format for each entry:
 
 ---
 
+## 2026-05-18 — Build functionally complete; deployment documentation added
+
+- **Decision (informational):** All 6 build phases are done. 213 tests passing, ruff clean, end-to-end smoke test produces real HTML + PDF reports from synthetic data. Norgate SDK syntax verified against the actual `norgatedata` package (version 1.0.74). Two real bugs in the Norgate adapter (a bogus `limit=-1` kwarg and a missing `database` arg on `last_database_update_time`) caught in the second debugging round and fixed.
+- **Documentation added 2026-05-18:**
+  - **`CLAUDE.md`** at repo root — Claude Code orientation file for any session opening this repo (project summary, hard constraints, file layout, common operations, what to NOT do)
+  - **`docs/deployment/runbook.md`** — complete step-by-step laptop deployment procedure (Python install, GTK runtime for WeasyPrint, repo clone, venv, Norgate subscription + NDU setup, Windows power settings, Gmail app password, config.toml fill-in, init-db + refresh-universe + backfill-prices, Task Scheduler config, hand-off to advisor)
+  - **`docs/deployment/troubleshooting.md`** — every common error during setup or production with diagnosis and fix (setup-time, Norgate, database, email, PDF, scoring, audit log, CLI issues)
+  - **`docs/deployment/maintenance.md`** — daily / weekly / monthly / quarterly / annual operational tasks. Most important: weekly `update_forward_returns` to populate live performance data; monthly scoreboard review; quarterly weight retuning
+  - **`docs/deployment/working-with-claude.md`** — the cross-environment workflow for when an issue surfaces on the advisor's laptop and needs a fix in Codespace. Covers the basic loop, when to develop where, how to give Claude useful context, merge-conflict avoidance, two-Claude-session etiquette
+- **Status:** Build complete. Awaiting Norgate subscription activation on the advisor's laptop. Nothing else blocks deployment.
+- **Context:** User asked for "minute detail" documentation to ensure the Codespace ↔ laptop transition is smooth and that any future Claude session can orient and contribute productively.
+
+---
+
 ## 2026-05-18 — Lock remaining outline items for Phase 1 build start
 
 User decisions captured on 2026-05-18 to close the outline:

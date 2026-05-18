@@ -6,9 +6,13 @@ This is the canonical phased plan for the P&F + Fundamental Stock Screening Bot.
 
 ## Vision
 
-A daily screening bot that scans a universe of US equities, applies P&F technical analysis alongside a fundamental quality filter, and emails the advisor a ranked report of *pre-breakout* candidates — stocks showing the technical and fundamental tells that typically precede a profitable move, identified before the move plays out.
+A daily screening bot that scans a universe of US equities, applies P&F technical analysis, and emails the advisor a ranked report of pre-momentum and in-momentum candidates — stocks showing the technical tells that typically precede or confirm a profitable move, identified with the same lens a skilled P&F practitioner would apply.
 
 The bot does not predict the future. It identifies setups that historically have favorable expected value, presented with full reasoning so the advisor can apply judgement.
+
+## Build status (as of 2026-05-18)
+
+**Functionally complete.** 213 tests passing, ruff clean, end-to-end smoke test verified. Awaiting Norgate subscription activation on the advisor's laptop for production deployment. See [deployment/README.md](deployment/README.md) for the deployment runbook.
 
 ---
 
@@ -28,7 +32,7 @@ The bot does not predict the future. It identifies setups that historically have
 
 ---
 
-## Phase 1 — Data Foundation
+## Phase 1 — Data Foundation ✅ COMPLETE (code), awaits Norgate activation
 
 **Goal:** establish the data pipeline. Norgate OHLC + universe definition flowing into a local SQLite store on a daily schedule.
 
@@ -50,7 +54,7 @@ The bot does not predict the future. It identifies setups that historically have
 
 ---
 
-## Phase 2 — P&F Analysis Engine
+## Phase 2 — P&F Analysis Engine ✅ COMPLETE
 
 **Goal:** the technical core. Given a ticker, produce a P&F chart object and identify its current signal state, trendlines, RS rank, BPI context, and proximity to the next signal.
 
@@ -92,7 +96,7 @@ The largest phase. No production-grade open-source P&F library follows Dorsey's 
 
 ---
 
-## Phase 4 — Pre-Momentum + In-Momentum Scoring & Detection
+## Phase 4 — Pre-Momentum + In-Momentum Scoring & Detection ✅ COMPLETE
 
 **Goal:** the heart of the bot. Apply the pre-momentum + in-momentum detection methodology to classify and rank stocks.
 
@@ -123,7 +127,7 @@ The largest phase. No production-grade open-source P&F library follows Dorsey's 
 
 ---
 
-## Phase 5 — Reporting & Delivery
+## Phase 5 — Reporting & Delivery ✅ COMPLETE
 
 **Goal:** the daily artifact that lands in the advisor's inbox.
 
@@ -182,7 +186,7 @@ Each candidate's report block includes:
 
 ---
 
-## Phase 6 — Feedback Loop
+## Phase 6 — Feedback Loop ✅ COMPLETE
 
 **Goal:** the bot improves over time. Track what works and what doesn't.
 
