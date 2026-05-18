@@ -22,6 +22,16 @@ from pnf_bot.pnf.box_scaling import (
     TraditionalScaling,
 )
 from pnf_bot.pnf.chart import construct_chart
+from pnf_bot.pnf.rs import (
+    FUND_RS_BOX_PCT,
+    STOCK_RS_BOX_PCT,
+    RSSignalStatus,
+    compute_rs_ohlc,
+    construct_rs_chart,
+    is_rs_negative_trend,
+    is_rs_positive_trend,
+    rs_signal_status,
+)
 from pnf_bot.pnf.signals import (
     Signal,
     SignalDirection,
@@ -29,19 +39,45 @@ from pnf_bot.pnf.signals import (
     detect_signals,
     latest_signal,
 )
+from pnf_bot.pnf.trendlines import (
+    Trendline,
+    TrendlineType,
+    boxes_above_bullish_support,
+    boxes_below_bearish_resistance,
+    find_bearish_resistance_line,
+    find_bullish_support_line,
+    is_above_bullish_support,
+    is_below_bearish_resistance,
+)
 from pnf_bot.pnf.types import Column, ColumnType, PnFChart
 
 __all__ = [
     "BoxScaling",
     "Column",
     "ColumnType",
+    "FUND_RS_BOX_PCT",
     "PercentageScaling",
     "PnFChart",
+    "RSSignalStatus",
+    "STOCK_RS_BOX_PCT",
     "Signal",
     "SignalDirection",
     "SignalType",
     "TraditionalScaling",
+    "Trendline",
+    "TrendlineType",
+    "boxes_above_bullish_support",
+    "boxes_below_bearish_resistance",
+    "compute_rs_ohlc",
     "construct_chart",
+    "construct_rs_chart",
     "detect_signals",
+    "find_bearish_resistance_line",
+    "find_bullish_support_line",
+    "is_above_bullish_support",
+    "is_below_bearish_resistance",
+    "is_rs_negative_trend",
+    "is_rs_positive_trend",
     "latest_signal",
+    "rs_signal_status",
 ]
