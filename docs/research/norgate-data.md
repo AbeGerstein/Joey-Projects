@@ -199,7 +199,52 @@ All wrapped in `src/pnf_bot/data/norgate.py`.
 
 ---
 
-## 10. Operational checklist for the advisor
+## 10. Coverage check — does Norgate enable our full P&F methodology?
+
+The honest answer: **yes, every piece of P&F analysis we've designed runs from Norgate's data.** P&F is fundamentally a price-based methodology, and Norgate gives us clean adjusted prices, historical depth, point-in-time universes, and sector tags. The math is deterministic on OHLC — given the same prices, our engine produces the same chart DWA would.
+
+### Full coverage table
+
+| Methodology piece | Norgate inputs we use | Verdict |
+|---|---|---|
+| P&F chart construction (Xs/Os from high/low) | Adjusted daily OHLC | ✅ |
+| Box scaling (traditional price-tiered table) | Price levels in OHLC | ✅ |
+| 3-box reversal logic | OHLC | ✅ |
+| All 8 signal types (DT, DB, TT, TB, spread TT/B, catapult, triangle, long tail) | OHLC → P&F chart | ✅ |
+| 45° trendlines (bullish support / bearish resistance) | OHLC → P&F chart | ✅ |
+| Relative Strength chart vs equal-weight benchmark | Stock OHLC + RSP OHLC | ✅ |
+| RS buy/sell signal detection | RS chart from prices | ✅ |
+| Bullish Percent Index (universe + 11 sector BPIs) | Per-stock signals + GICS sectors | ✅ |
+| All 7 pre-momentum patterns | P&F chart + RS + BPI | ✅ |
+| All 6 in-momentum patterns | Same | ✅ |
+| Anti-pattern exclusions | P&F chart geometry | ✅ |
+| Composite scoring (internal 0–5 TA-equivalent) | Above components | ✅ |
+| Freshness multipliers (new-last-night) | SignalState diffs | ✅ |
+| Survivorship-bias-free backtest back to 1990 | Active + delisted symbols, PIT index constituents | ✅ |
+
+### Methodological differences from DWA worth knowing honestly
+
+| Item | DWA | Norgate path | Impact |
+|---|---|---|---|
+| Sector taxonomy | DALI (proprietary) | GICS (industry standard) | Slightly different sector groupings → slightly different sector BPI values. Both methodologically valid; the BPI math is identical. |
+| RS benchmark | SPXEWI (raw index) | RSP (the ETF tracking it) | Tracking difference is typically under 1 basis point. Essentially indistinguishable. |
+| TA composite score | DWA's proprietary formula (0–5) | Our transparent 5-condition composite | Different exact value, captures the same posture concept. Expected to correlate strongly with DWA's in live use. |
+| Historical GICS reassignments | (DWA's behavior unknown) | Current-state only via Norgate (per docs) | Minor backtest bias for stocks that switched sectors years ago. See OQ-010. |
+
+### The one thing Norgate doesn't provide
+
+**DWA's proprietary Technical Attributes composite score as a directly-fetched number.** This is the same gap we accepted when we chose the Norgate-only path. We compute our own functionally-equivalent 5-condition composite. The advisor can spot-check our composite against DWA's TA score via his existing platform subscription whenever he wants.
+
+### Two things to verify once Norgate is activated
+
+1. **SPXEWI index availability.** RSP (ETF) is verified available. If raw `$SPXEW` is also available on Platinum, the raw index may be marginally preferred. 30-second check in NDU's Database tab.
+2. **Historical GICS via API.** Norgate's docs imply current-state only. Worth asking Norgate support directly — if a point-in-time GICS timeseries is exposed, we can improve backtest fidelity for sector-change cases.
+
+Neither blocks anything. Both are post-activation refinements.
+
+---
+
+## 11. Operational checklist for the advisor
 
 When the Norgate subscription is activated, complete these steps on the laptop where the bot will run:
 
