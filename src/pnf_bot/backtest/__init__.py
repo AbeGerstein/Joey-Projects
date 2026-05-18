@@ -30,6 +30,16 @@ from pnf_bot.backtest.metrics import (
     compute_metrics,
     forward_return,
 )
+from pnf_bot.backtest.tuning import (
+    WeightEvaluation,
+    WeightSearchSpec,
+    WeightTuningResult,
+    default_objective,
+    evaluate_weight_configurations,
+    grid_search_configurations,
+    split_dates_train_test,
+    tune_weights,
+)
 
 __all__ = [
     "BacktestConfig",
@@ -37,7 +47,15 @@ __all__ = [
     "BacktestResult",
     "HorizonMetrics",
     "PerformanceMetrics",
+    "WeightEvaluation",
+    "WeightSearchSpec",
+    "WeightTuningResult",
     "compute_metrics",
+    "default_objective",
+    "evaluate_weight_configurations",
     "forward_return",
+    "grid_search_configurations",
     "run_backtest",
+    "split_dates_train_test",
+    "tune_weights",
 ]
