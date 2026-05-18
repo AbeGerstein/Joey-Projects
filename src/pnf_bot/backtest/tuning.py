@@ -22,15 +22,15 @@ from tuning to noise.
 from __future__ import annotations
 
 import itertools
-from dataclasses import dataclass, field, replace
+from collections.abc import Callable
+from dataclasses import dataclass, replace
 from datetime import date
-from typing import Callable, Literal
+from typing import Literal
 
 import pandas as pd
 
 from pnf_bot.backtest.harness import (
     BacktestConfig,
-    BacktestResult,
     run_backtest,
 )
 from pnf_bot.backtest.metrics import PerformanceMetrics
@@ -39,7 +39,6 @@ from pnf_bot.scoring.composite import (
     PRE_MOMENTUM_DEFAULT_WEIGHTS,
     CompositeWeights,
 )
-
 
 # Type aliases
 ObjectiveFunction = Callable[[PerformanceMetrics], float]

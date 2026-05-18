@@ -17,7 +17,6 @@ from jinja2 import Environment, FileSystemLoader, select_autoescape
 from pnf_bot.report.detail import StockDetailRecord
 from pnf_bot.scoring.composite import DailyReport
 
-
 _TEMPLATE_DIR = Path(__file__).parent / "templates"
 
 

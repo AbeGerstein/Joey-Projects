@@ -21,7 +21,7 @@ import click
 
 from pnf_bot import __version__
 from pnf_bot.config import load_config
-from pnf_bot.data import storage, universe, prices
+from pnf_bot.data import prices, storage, universe
 
 log = logging.getLogger("pnf_bot")
 
@@ -116,7 +116,8 @@ def daily_run(cfg) -> None:  # noqa: ANN001
     """
     from datetime import date
 
-    from pnf_bot.data import norgate, prices, storage as storage_mod, universe
+    from pnf_bot.data import norgate, prices, universe
+    from pnf_bot.data import storage as storage_mod
     from pnf_bot.feedback import record_recommendation
     from pnf_bot.pnf import construct_chart, construct_rs_chart
     from pnf_bot.report import (

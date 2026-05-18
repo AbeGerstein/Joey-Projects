@@ -12,12 +12,10 @@ return metrics at 1/3/6/12-month forward windows.
 
 from __future__ import annotations
 
-import math
-from dataclasses import dataclass, field
-from datetime import date, timedelta
+from dataclasses import dataclass
+from datetime import date
 
 import pandas as pd
-
 
 # Standard forward-return horizons for the backtest
 DEFAULT_HORIZONS_TRADING_DAYS = (21, 63, 126, 252)  # ~1m, 3m, 6m, 12m

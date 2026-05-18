@@ -8,11 +8,10 @@ Compound signals require multi-column patterns:
 
 from __future__ import annotations
 
-from datetime import date, timedelta
+from datetime import date
 from decimal import Decimal
 
 import pandas as pd
-import pytest
 
 from pnf_bot.pnf import construct_chart, detect_signals
 

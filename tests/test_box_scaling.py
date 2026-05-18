@@ -8,7 +8,6 @@ import pytest
 
 from pnf_bot.pnf.box_scaling import PercentageScaling, TraditionalScaling
 
-
 # ---------------------------------------------------------------------------
 # TraditionalScaling — Dorsey's price-tiered table
 # ---------------------------------------------------------------------------

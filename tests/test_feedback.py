@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 from datetime import date, timedelta
-from decimal import Decimal
 from pathlib import Path
 
 import pandas as pd

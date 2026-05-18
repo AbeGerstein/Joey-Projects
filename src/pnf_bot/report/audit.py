@@ -10,8 +10,8 @@ from __future__ import annotations
 
 import hashlib
 import json
-from dataclasses import dataclass, asdict
-from datetime import date, datetime, UTC
+from dataclasses import dataclass
+from datetime import UTC, date, datetime
 from pathlib import Path
 
 from pnf_bot.data import storage

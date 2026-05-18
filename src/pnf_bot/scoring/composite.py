@@ -15,9 +15,8 @@ in Phase 4 backtest.
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
-from datetime import date, timedelta
-from decimal import Decimal
+from dataclasses import dataclass
+from datetime import date
 
 from pnf_bot.pnf.types import PnFChart
 from pnf_bot.scoring.anti_patterns import is_exhausted
@@ -25,7 +24,6 @@ from pnf_bot.scoring.in_momentum import detect_in_momentum_patterns
 from pnf_bot.scoring.pre_momentum import detect_pre_momentum_patterns
 from pnf_bot.scoring.ta_composite import compute_ta_equivalent
 from pnf_bot.scoring.types import PatternMatch
-
 
 # ---------------------------------------------------------------------------
 # Freshness multipliers — applied to the composite score based on how

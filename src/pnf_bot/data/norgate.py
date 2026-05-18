@@ -254,11 +254,8 @@ def get_ticker_metadata(symbol: str) -> TickerMetadata:
         raise _to_error(e) from e
 
     last_quoted_date: date | None = None
-    if last_quoted:
-        if isinstance(last_quoted, pd.Timestamp):
-            last_quoted_date = last_quoted.date()
-        elif hasattr(last_quoted, "date"):
-            last_quoted_date = last_quoted.date()
+    if last_quoted and (isinstance(last_quoted, pd.Timestamp) or hasattr(last_quoted, "date")):
+        last_quoted_date = last_quoted.date()
 
     is_active = last_quoted_date is None or (last_quoted_date >= date.today())
 

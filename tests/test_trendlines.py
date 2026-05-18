@@ -6,11 +6,9 @@ from datetime import date
 from decimal import Decimal
 
 import pandas as pd
-import pytest
 
 from pnf_bot.pnf import (
     boxes_above_bullish_support,
-    boxes_below_bearish_resistance,
     construct_chart,
     find_bearish_resistance_line,
     find_bullish_support_line,

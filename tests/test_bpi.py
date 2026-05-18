@@ -6,11 +6,8 @@ from datetime import date, timedelta
 from decimal import Decimal
 
 import pandas as pd
-import pytest
 
 from pnf_bot.pnf import (
-    BPI_HIGH_RISK_LEVEL,
-    BPI_LOW_RISK_LEVEL,
     classify_bpi_state,
     compute_bpi,
     compute_bpi_with_breakdown,
@@ -59,7 +56,7 @@ class TestCurrentSignalPosture:
 
 
 class TestComputeBpi:
-    def _make_buy_chart(self) -> "construct_chart":
+    def _make_buy_chart(self) -> construct_chart:
         bars = [
             (50.0, 50.0),
             (50.0, 46.0),
@@ -69,7 +66,7 @@ class TestComputeBpi:
         ]
         return construct_chart("T", _bars(date(2026, 1, 5), bars))
 
-    def _make_sell_chart(self) -> "construct_chart":
+    def _make_sell_chart(self) -> construct_chart:
         bars = [
             (55.0, 55.0),
             (55.0, 50.0),
@@ -129,7 +126,7 @@ class TestBpiChart:
 
 
 class TestBpiClassification:
-    def _bpi_chart_for(self, values: list[float]) -> "construct_bpi_chart":
+    def _bpi_chart_for(self, values: list[float]) -> construct_bpi_chart:
         idx = [date(2026, 1, 5) + timedelta(days=i) for i in range(len(values))]
         return construct_bpi_chart(pd.Series(values, index=idx))
 
@@ -140,7 +137,6 @@ class TestBpiClassification:
         assert state in ("bull_confirmed", "bull_alert", "bull_correction")
 
     def test_unknown_for_empty_chart(self) -> None:
-        empty_series = pd.Series([], index=pd.DatetimeIndex([]), dtype=float)
         # Empty series can't construct a chart, so build a minimal one
         chart = construct_bpi_chart(pd.Series([50.0], index=[date(2026, 1, 5)]))
         # Single-bar BPI chart still has one column

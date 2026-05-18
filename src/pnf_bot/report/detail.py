@@ -145,7 +145,6 @@ def compile_stock_detail(
         suggested_stop = None
         current_price = None
 
-    pattern_names = ", ".join(p.pattern_type for p in candidate.matched_patterns)
     primary = candidate.matched_patterns[0].pattern_type if candidate.matched_patterns else "—"
     reasoning = _build_reasoning(candidate, current_signal)
     notes = _build_notes(candidate, price_chart)

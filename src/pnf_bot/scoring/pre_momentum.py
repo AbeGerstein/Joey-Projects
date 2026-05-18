@@ -28,7 +28,6 @@ from decimal import Decimal
 from typing import Literal
 
 from pnf_bot.pnf.signals import detect_signals
-from pnf_bot.pnf.trendlines import boxes_above_bullish_support
 from pnf_bot.pnf.types import PnFChart
 from pnf_bot.scoring.types import PatternMatch
 

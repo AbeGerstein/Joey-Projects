@@ -5,7 +5,6 @@ from __future__ import annotations
 from datetime import date, timedelta
 
 import pandas as pd
-import pytest
 
 from pnf_bot.pnf import construct_chart
 from pnf_bot.report.charts import render_pnf_chart, render_rs_chart

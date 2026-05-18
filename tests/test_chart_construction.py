@@ -18,8 +18,6 @@ import pytest
 
 from pnf_bot.pnf import (
     PercentageScaling,
-    PnFChart,
-    TraditionalScaling,
     construct_chart,
 )
 

@@ -15,8 +15,8 @@ from the backtest, that's a signal to re-run weight tuning.
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
-from datetime import date, timedelta
+from dataclasses import dataclass
+from datetime import date
 from decimal import Decimal
 from pathlib import Path
 

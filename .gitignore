@@ -54,6 +54,7 @@ config.toml
 *.db-wal
 *.db-shm
 /data/
+/out/
 /reports/archive/*.pdf
 /reports/archive/*.html
 /logs/

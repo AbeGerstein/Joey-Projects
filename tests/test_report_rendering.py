@@ -5,13 +5,15 @@ from __future__ import annotations
 from datetime import date, timedelta
 
 import pandas as pd
-import pytest
 
 from pnf_bot.pnf import construct_chart
-from pnf_bot.report.detail import StockDetailRecord, compile_stock_detail
+from pnf_bot.report.detail import compile_stock_detail
 from pnf_bot.report.render import render_html_report
-from pnf_bot.scoring.composite import DailyReport, ScoredCandidate, build_daily_report
-from pnf_bot.scoring.composite import score_stock_pre_momentum
+from pnf_bot.scoring.composite import (
+    DailyReport,
+    ScoredCandidate,
+    build_daily_report,
+)
 
 
 def _bars(start: date, hl: list[tuple[float, float]]) -> pd.DataFrame:
@@ -24,7 +26,7 @@ def _bars(start: date, hl: list[tuple[float, float]]) -> pd.DataFrame:
     )
 
 
-def _build_candidate(symbol: str) -> tuple[ScoredCandidate, "construct_chart"]:
+def _build_candidate(symbol: str) -> tuple[ScoredCandidate, construct_chart]:
     bars = [
         (50.0, 50.0),
         (50.0, 45.0),

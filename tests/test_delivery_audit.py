@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import smtplib
-from datetime import date, datetime, UTC
+from datetime import UTC, date, datetime
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
@@ -12,7 +12,6 @@ import pytest
 from pnf_bot.data import storage
 from pnf_bot.report.audit import persist_report_to_audit_log
 from pnf_bot.report.delivery import DeliveryResult, SmtpConfig, send_report_email
-
 
 # ---------------------------------------------------------------------------
 # Delivery

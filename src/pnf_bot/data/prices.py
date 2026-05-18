@@ -5,10 +5,9 @@ from __future__ import annotations
 from datetime import date, timedelta
 from decimal import Decimal
 
+import pandas as pd
 from sqlalchemy import select
 from sqlalchemy.dialects.sqlite import insert as sqlite_insert
-
-import pandas as pd
 
 from pnf_bot.config import Config
 from pnf_bot.data import norgate, storage

@@ -16,19 +16,15 @@ embeds these as base64-encoded data URIs.
 from __future__ import annotations
 
 import io
-from decimal import Decimal
-from typing import Literal
 
 import matplotlib
 
 matplotlib.use("Agg")  # noqa: E402  # non-interactive backend, no display required
-import matplotlib.patches as patches  # noqa: E402
 import matplotlib.pyplot as plt  # noqa: E402
 
 from pnf_bot.pnf.signals import detect_signals
 from pnf_bot.pnf.trendlines import find_bearish_resistance_line, find_bullish_support_line
 from pnf_bot.pnf.types import PnFChart
-
 
 # Color and styling — matches Dorsey's published charts closely
 X_COLOR = "#2E7D32"   # green
@@ -70,7 +66,12 @@ def render_pnf_chart(
     all_bottoms = [float(c.bottom) for c in chart.columns]
     price_min = min(all_bottoms)
     price_max = max(all_tops)
-    price_padding = (price_max - price_min) * 0.05
+    price_span = price_max - price_min
+    # Guard against degenerate single-bar charts where min == max
+    if price_span <= 0:
+        price_padding = max(1.0, price_max * 0.05) if price_max > 0 else 1.0
+    else:
+        price_padding = price_span * 0.05
     ax.set_ylim(price_min - price_padding, price_max + price_padding)
     ax.set_xlim(-0.5, len(chart.columns) - 0.5)
 

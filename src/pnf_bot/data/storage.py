@@ -20,7 +20,6 @@ from sqlalchemy import (
     DateTime,
     ForeignKey,
     Index,
-    Integer,
     Numeric,
     String,
     UniqueConstraint,
@@ -52,8 +51,8 @@ class Ticker(Base):
     first_seen: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(UTC), nullable=False)
     last_updated: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(UTC), nullable=False)
 
-    bars: Mapped[list["DailyBar"]] = relationship(back_populates="ticker")
-    signals: Mapped[list["SignalState"]] = relationship(back_populates="ticker")
+    bars: Mapped[list[DailyBar]] = relationship(back_populates="ticker")
+    signals: Mapped[list[SignalState]] = relationship(back_populates="ticker")
 
 
 class DailyBar(Base):

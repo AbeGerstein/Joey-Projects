@@ -6,7 +6,6 @@ from datetime import date, timedelta
 from decimal import Decimal
 
 import pandas as pd
-import pytest
 
 from pnf_bot.pnf import construct_chart
 from pnf_bot.scoring.pre_momentum import (
@@ -113,12 +112,7 @@ class TestFirstBuyAfterLongSell:
             (54.0, 50.0),
             (54.0, 49.0),  # DB at 49
         ]
-        # Then ~200 days of nothing-much (small O column moves keeping us in the same column)
-        # Then a DT
-        bars_phase2 = []
-        # Add many days that don't disturb the chart structure but pass time
-        # Simplest: just keep the chart in a flat O column
-        # Need substantial time gap, so add 200 days of O column extension at lower lows
+        # Then a DT after a substantial time gap (added via the date index, not bar count)
         bars_phase3 = [
             (50.0, 49.0),  # X reversal up
             (50.0, 49.0),  # ... etc

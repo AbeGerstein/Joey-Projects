@@ -21,7 +21,7 @@ box boundaries.
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from decimal import ROUND_FLOOR, ROUND_HALF_UP, Decimal
+from decimal import ROUND_FLOOR, Decimal
 
 
 class BoxScaling(ABC):

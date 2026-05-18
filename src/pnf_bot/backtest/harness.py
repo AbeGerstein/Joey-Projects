@@ -19,27 +19,27 @@ and simple, slower).
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from datetime import date, timedelta
+from datetime import date
 
 import pandas as pd
 
-from pnf_bot.pnf.chart import construct_chart
-from pnf_bot.pnf.rs import construct_rs_chart
-from pnf_bot.scoring.composite import (
-    CompositeWeights,
-    DailyReport,
-    PRE_MOMENTUM_DEFAULT_WEIGHTS,
-    IN_MOMENTUM_DEFAULT_WEIGHTS,
-    ScoredCandidate,
-    build_daily_report,
-    score_stock_in_momentum,
-    score_stock_pre_momentum,
-)
 from pnf_bot.backtest.metrics import (
     DEFAULT_HORIZONS_TRADING_DAYS,
     PerformanceMetrics,
     compute_metrics,
     forward_return,
+)
+from pnf_bot.pnf.chart import construct_chart
+from pnf_bot.pnf.rs import construct_rs_chart
+from pnf_bot.scoring.composite import (
+    IN_MOMENTUM_DEFAULT_WEIGHTS,
+    PRE_MOMENTUM_DEFAULT_WEIGHTS,
+    CompositeWeights,
+    DailyReport,
+    ScoredCandidate,
+    build_daily_report,
+    score_stock_in_momentum,
+    score_stock_pre_momentum,
 )
 
 
@@ -175,7 +175,11 @@ def _run_one_rebalance(
             except Exception:  # noqa: BLE001
                 rs_chart = None
 
-        sector = sector_map.get(symbol) if sector_map else None
+        # Sector context is intentionally not used in v1 backtest — sector BPI
+        # history per-date is not computed (would require an extra inner loop
+        # over the entire universe per rebalance date). sector_map is reserved
+        # for a future point-in-time sector BPI implementation.
+        _ = sector_map.get(symbol) if sector_map else None
 
         pre = score_stock_pre_momentum(
             symbol, price_chart, rs_chart=rs_chart,

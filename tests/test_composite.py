@@ -3,17 +3,14 @@
 from __future__ import annotations
 
 from datetime import date, timedelta
-from decimal import Decimal
 
 import pandas as pd
-import pytest
 
 from pnf_bot.pnf import construct_chart
 from pnf_bot.scoring.composite import (
     ScoredCandidate,
     build_daily_report,
     freshness_multiplier,
-    score_stock_in_momentum,
     score_stock_pre_momentum,
 )
 
