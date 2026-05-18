@@ -18,16 +18,31 @@ Public API:
     )
 """
 
+from pnf_bot.scoring.anti_patterns import (
+    ExhaustionReason,
+    evaluate_anti_patterns,
+    is_exhausted,
+)
+from pnf_bot.scoring.in_momentum import (
+    InMomentumPatternType,
+    detect_in_momentum_patterns,
+)
 from pnf_bot.scoring.pre_momentum import (
     PreMomentumPatternType,
     detect_pre_momentum_patterns,
 )
-from pnf_bot.scoring.ta_composite import compute_ta_equivalent
+from pnf_bot.scoring.ta_composite import TaComposite, compute_ta_equivalent
 from pnf_bot.scoring.types import PatternMatch
 
 __all__ = [
+    "ExhaustionReason",
+    "InMomentumPatternType",
     "PatternMatch",
     "PreMomentumPatternType",
+    "TaComposite",
     "compute_ta_equivalent",
+    "detect_in_momentum_patterns",
     "detect_pre_momentum_patterns",
+    "evaluate_anti_patterns",
+    "is_exhausted",
 ]
