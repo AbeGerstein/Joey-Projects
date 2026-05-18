@@ -9,7 +9,7 @@ if scale ever demands it.
 
 from __future__ import annotations
 
-from datetime import date, datetime
+from datetime import UTC, date, datetime
 from decimal import Decimal
 from pathlib import Path
 
@@ -20,6 +20,7 @@ from sqlalchemy import (
     DateTime,
     ForeignKey,
     Index,
+    Integer,
     Numeric,
     String,
     UniqueConstraint,
@@ -48,8 +49,8 @@ class Ticker(Base):
     industry: Mapped[str | None] = mapped_column(String(100))
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
     delisted_date: Mapped[date | None] = mapped_column(Date)
-    first_seen: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, nullable=False)
-    last_updated: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, nullable=False)
+    first_seen: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(UTC), nullable=False)
+    last_updated: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(UTC), nullable=False)
 
     bars: Mapped[list["DailyBar"]] = relationship(back_populates="ticker")
     signals: Mapped[list["SignalState"]] = relationship(back_populates="ticker")
@@ -91,7 +92,7 @@ class SignalState(Base):
 
     __tablename__ = "signal_state"
 
-    id: Mapped[int] = mapped_column(BigInteger, primary_key=True, autoincrement=True)
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     symbol: Mapped[str] = mapped_column(String(20), ForeignKey("tickers.symbol"))
     evaluation_date: Mapped[date] = mapped_column(Date)
 
@@ -130,8 +131,8 @@ class ReportArchive(Base):
 
     __tablename__ = "reports_archive"
 
-    id: Mapped[int] = mapped_column(BigInteger, primary_key=True, autoincrement=True)
-    generated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, nullable=False)
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    generated_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(UTC), nullable=False)
     report_date: Mapped[date] = mapped_column(Date, nullable=False)
     recipient_email: Mapped[str] = mapped_column(String(255))
     subject_line: Mapped[str] = mapped_column(String(255))

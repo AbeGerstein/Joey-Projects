@@ -5,7 +5,7 @@ Pulls from the Norgate adapter, applies the price floor, persists to storage.
 
 from __future__ import annotations
 
-from datetime import date, datetime
+from datetime import UTC, date, datetime
 from decimal import Decimal
 
 from sqlalchemy.orm import Session
@@ -111,4 +111,4 @@ def _upsert_ticker(session: Session, meta: norgate.TickerMetadata) -> None:
         existing.industry = meta.industry
         existing.is_active = meta.is_active
         existing.delisted_date = meta.delisted_date
-        existing.last_updated = datetime.utcnow()
+        existing.last_updated = datetime.now(UTC)
