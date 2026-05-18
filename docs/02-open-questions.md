@@ -64,13 +64,11 @@ Each item is tagged with:
 
 ---
 
-## OQ-010: Norgate sector classification — research pending
+## ~~OQ-010: Norgate sector classification~~ — RESOLVED 2026-05-18
 
-- **Question:** Does Norgate Data expose GICS sectors directly, or its own proprietary classification? What granularity (sector / industry group / industry / sub-industry) is available via the Python SDK? Are historical sector assignments tracked?
-- **Blocking?** Yes for Phase 2 BPI sector aggregation (computing sector BPIs requires reliable sector tags per stock)
-- **Owner:** Developer (research dispatched 2026-05-18); Advisor (decision if a non-GICS taxonomy needs review)
-- **Asked:** 2026-05-18
-- **Notes:** Findings will be captured in `docs/research/norgate-data.md` (forthcoming). If Norgate uses a non-GICS taxonomy, decide whether to (a) map it to GICS via a translation table, (b) use Norgate's native taxonomy directly, or (c) source GICS from a separate vendor.
+- **Resolution:** Norgate exposes **full GICS hierarchy** (sector → industry group → industry → sub-industry) via `classification()` and `classification_at_level()` functions. Our adapter uses GICS level 1 for sector and level 3 for industry.
+- **Confirmed limitation:** GICS is exposed as **current-state only**. No point-in-time GICS timeseries function exists in the SDK. Historical sector reassignments are not tracked. Accepted for v1 as a minor backtest bias affecting only stocks that changed sectors years ago. Not blocking.
+- See [research/norgate-data.md](research/norgate-data.md) sections 4 and 8 for full detail.
 
 ---
 

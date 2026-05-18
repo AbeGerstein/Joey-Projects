@@ -35,6 +35,7 @@ class NorgateConfig(BaseModel):
 
     universe_watchlist: str = "US Equities"
     price_adjustment: str = Field(default="TotalReturn", pattern="^(TotalReturn|Capital|None)$")
+    benchmark_symbol: str = "RSP"
 
 
 class ScoringConfig(BaseModel):

@@ -18,12 +18,12 @@ When the ratio rises, the security is outperforming the benchmark; when it falls
 
 ### Choice of benchmark
 
-DWA uses the **S&P 500 Equal Weighted Index (SPXEWI)** as the standard benchmark for stock RS. The equal-weighted variant is preferred over the cap-weighted S&P 500 because:
+DWA uses the **S&P 500 Equal Weighted Index (S&P 500 Equal Weight Index (Norgate symbol: SPXEW; DWA calls it SPXEWI; ETF proxy: RSP))** as the standard benchmark for stock RS. The equal-weighted variant is preferred over the cap-weighted S&P 500 because:
 
 1. The equal-weighted index represents the "average stock" more faithfully — a few mega-caps don't dominate it.
 2. Outperforming the equal-weighted index is a tougher and more meaningful bar than beating a cap-weighted index in a mega-cap-led market.
 
-For **fund RS**, DWA uses the same SPXEWI benchmark with adjusted scaling (see below).
+For **fund RS**, DWA uses the same S&P 500 Equal Weight Index (Norgate symbol: SPXEW; DWA calls it SPXEWI; ETF proxy: RSP) benchmark with adjusted scaling (see below).
 
 For **sector RS**, an additional RS chart is sometimes computed using the sector's own index as the benchmark — to identify the leading stocks *within* a sector.
 
@@ -66,7 +66,7 @@ The screener uses RS in three ways:
 
 1. **As a filter:** stocks on a long-term RS sell signal are deprioritized or excluded outright. The bot is looking for *leaders*, not laggards.
 2. **As a tiebreaker / score input:** among candidates with comparable price-chart setups, those with stronger RS rank higher in the composite score.
-3. **As a sector overlay:** sector RS (sector vs. SPXEWI) is used to identify which sectors are in favor. Candidates from in-favor sectors score higher (sector tailwind effect documented in [bullish-percent-index.md](bullish-percent-index.md)).
+3. **As a sector overlay:** sector RS (sector vs. S&P 500 Equal Weight Index (Norgate symbol: SPXEW; DWA calls it SPXEWI; ETF proxy: RSP)) is used to identify which sectors are in favor. Candidates from in-favor sectors score higher (sector tailwind effect documented in [bullish-percent-index.md](bullish-percent-index.md)).
 
 ---
 
@@ -87,7 +87,7 @@ This project will implement the RS Matrix in Phase 2 as part of the P&F engine. 
 ## Edge cases and pitfalls
 
 - **Stock splits and dividends:** RS calculations must use **adjusted prices** to avoid spurious signals on split dates. The data vendor must provide adjusted OHLC.
-- **Index choice:** if the data vendor doesn't carry SPXEWI directly, the equal-weighted S&P 500 ETF (ticker **RSP**) is a perfect proxy.
+- **Index choice:** if the data vendor doesn't carry S&P 500 Equal Weight Index (Norgate symbol: SPXEW; DWA calls it SPXEWI; ETF proxy: RSP) directly, the equal-weighted S&P 500 ETF (ticker **RSP**) is a perfect proxy.
 - **Currency:** non-US ADRs introduce currency effects in the RS ratio. The project's hard scope is US equities only, so this shouldn't arise, but it's worth flagging if scope ever expands.
 - **Sparse data:** newly listed stocks have insufficient history for a meaningful long-term RS chart. Apply a minimum history filter (e.g., 2 years of price data) before computing RS.
 

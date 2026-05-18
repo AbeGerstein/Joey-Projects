@@ -17,19 +17,31 @@ from pnf_bot.data import norgate, storage
 def refresh_universe(config: Config) -> int:
     """Refresh the local Ticker table from Norgate's universe.
 
+    Filters the raw "US Equities" database (which Norgate stuffs with ETFs,
+    preferreds, BDCs, and other non-common-stock securities) down to
+    common stocks only — Operating/Holding equity companies, including REITs.
+
     Returns the count of tickers in the active universe after refresh.
 
-    1. Fetch the universe symbol list from Norgate
-    2. For each symbol, fetch metadata (name, exchange, sector, status)
-    3. Upsert into the local Ticker table
-    4. Mark delisted names is_active=False without deleting (compliance: keep history)
+    Steps:
+    1. Fetch the raw universe symbol list from Norgate
+    2. Filter to common stocks via norgate.is_common_stock()
+    3. For each remaining symbol, fetch metadata (name, exchange, sector)
+    4. Upsert into the local Ticker table
+    5. Mark delisted names is_active=False without deleting (audit trail)
     """
-    symbols = norgate.list_universe(config.norgate.universe_watchlist)
+    common_stocks = norgate.list_common_stocks(config.norgate.universe_watchlist)
 
     with storage.get_session(config.data.db_path) as session:
         active_count = 0
-        for symbol in symbols:
-            meta = norgate.get_ticker_metadata(symbol)
+        for symbol in common_stocks:
+            try:
+                meta = norgate.get_ticker_metadata(symbol)
+            except norgate.NorgateNotConfiguredError:
+                raise
+            except Exception:  # noqa: BLE001
+                # Per-ticker metadata fetch failure: skip, don't abort the whole refresh
+                continue
             _upsert_ticker(session, meta)
             if meta.is_active:
                 active_count += 1

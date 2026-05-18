@@ -61,10 +61,21 @@ These requirements are documented in our overall hosting and operations notes.
 
 ## 3. Data update cadence
 
-- **"Market Close Edition" arrives ~5:00 PM New York time daily.** This is the canonical end-of-day update.
-- Friday data tends to land slightly later.
-- Multiple editions per day: Initial → Final. LSEG-sourced fundamentals land later in the evening.
-- **Nightly delta runtime:** Typically a couple of minutes for US Stocks daily updates on a healthy machine. Initial database build (history back to 1990) can take an hour or more depending on bandwidth.
+- **Initial edition publishes ~5:00 PM Eastern Time.**
+- **Final edition publishes ~9:00 PM Eastern Time** the same trading day. This is what the bot should consume — it includes any late corrections.
+- **Friday data sometimes slips later** than other weekdays — Norgate explicitly flags this. Still well before our 3 AM MT (5 AM ET) Saturday run window.
+- Multiple editions per day means an early-evening run might miss late corrections. Schedule after 9 PM ET (e.g., overnight at 3 AM MT) for safety.
+- **Nightly delta runtime:** typically a couple of minutes for US Stocks daily updates on a healthy machine.
+- Initial database build (full history back to 1990) takes an hour or more depending on bandwidth.
+
+## 3a. Performance characteristics — confirmed 2026-05-18
+
+- **No rate limits.** Data is local-disk, IPC-served. Network is not in the loop after NDU has synced.
+- **Memory footprint:** a full Russell 3000 backtest spanning history back to 1990 can peak around 10.5 GB RAM (per Concretum's reference implementation). For our 10-year window the working set is much smaller (~2-3 GB).
+- **Pattern:** fetch and persist in batches of 200-500 symbols to keep memory bounded. Our `fetch_ohlc_bulk()` does per-symbol iteration which keeps the memory profile low.
+- **Speed:** a full Russell 3000 fetch over 10 years typically completes in a few minutes on a modern laptop. The bottleneck is pandas DataFrame construction, not data retrieval.
+
+These numbers are aspirational until benchmarked on the advisor's actual hardware post-subscription.
 
 ### Implication for our scheduling
 
@@ -88,13 +99,21 @@ Our `config.toml.example` default is **3:00 AM Mountain Time** (5:00 AM ET) whic
   - `norgatedata.classification_at_level(symbol, 'GICS', 'Name', level=N)` — specific tier (1–4)
 - **Our usage:** sector = level 1 ("Information Technology"); industry = level 3 ("Technology Hardware, Storage & Peripherals"). Stored as plain strings in our Ticker table.
 
-### Caveat — historical reassignments
+### Confirmed limitation — historical reassignments
 
-Norgate's docs imply GICS is exposed as a **current-state attribute** rather than a point-in-time timeseries. If a stock's sector changed historically, our database will reflect the *current* sector for both historical and current evaluations.
+Norgate exposes GICS as a **current-state attribute only**. There is **no point-in-time GICS timeseries function** in the public SDK — neither `gics_timeseries()` nor any equivalent exists. `classification()` and `classification_at_level()` both return the latest assignment only.
 
-For the v1 screener this is acceptable: sector mismatches at historical dates are rare and matter most for very long-horizon analyses. If it ever matters more, we'd add a sector-change-tracking job that snapshots Norgate's current sector at each daily run and tracks changes over time.
+This applies to all classification schemes Norgate carries (GICS, TRBC, NAICS, SIC, RBICS) — none have point-in-time tracking.
 
-**(Item flagged in [OQ-010](../02-open-questions.md) — confirm with Norgate support whether a PIT-GICS timeseries is available before relying on the current-state assumption.)**
+**For our use case this is acceptable:**
+- Sector mismatches at historical dates are uncommon (most stocks stay in their GICS sector for years)
+- The impact is limited to sector BPI accuracy at historical backtest dates for stocks that changed sectors
+- For live forward operation, current-state GICS is correct
+
+If we ever need point-in-time GICS:
+- Build our own daily-snapshot tracker (record each stock's current GICS daily; build a timeseries over time)
+- Or source historical GICS from a different vendor (FactSet, S&P direct)
+- Or file a feature request with Norgate (no expectation it will land)
 
 ---
 
@@ -158,14 +177,60 @@ The `Unadjusted Close` column is always returned regardless of setting, in case 
 
 ---
 
-## 7. Benchmark for Relative Strength — RSP recommended
+## 7. Benchmark for Relative Strength — RSP (verified) preferred over $SPXEW (unverified)
 
-DWA's documented RS methodology uses the S&P 500 Equal Weighted Index (SPXEWI).
+DWA's documented RS methodology uses the S&P 500 Equal Weighted Index (which DWA labels "SPXEWI"; the standard ticker is `SPXEW`).
 
-- **RSP (Invesco S&P 500 Equal Weight ETF)** is verified-available in Norgate's coverage and tracks SPXEWI nearly perfectly. It is the safe default.
-- The underlying index symbol (`$SPXEW` / `SPXEWI`) should exist on the Platinum tier but the exact Norgate-side ticker must be verified in NDU's Database tab post-subscription.
+**Status of `$SPXEW` on Norgate (researched 2026-05-18):**
 
-Our adapter uses `RSP` by default (`DEFAULT_BENCHMARK_SYMBOL = "RSP"` in `norgate.py`). Override via config if the index symbol turns out to be preferable.
+- Norgate uses a `$`-prefix convention for indexes (`$SPX`, `$RUA`, `$NDX`, etc.).
+- The Norgate published catalog lists `$SPX`, `$OEX`, `$MID`, `$SML`, `$SP1500`, `$SPDAUDP`, `$SPESG` — **no equal-weight S&P 500 variant**. `$SPXEW` is NOT in the public catalog.
+- It may still be accessible via the SDK post-subscription (S&P licenses the EW index separately), but cannot be assumed.
+- This requires login or email to support@norgatedata.com to confirm definitively.
+
+**Our default: RSP.** `RSP` (Invesco S&P 500 Equal Weight ETF) is verified available in `US Equities`, tracks `SPXEW` within ~1 basis point, and works under the same `price_timeseries()` call as any common stock. It is the safe, verified default for RS calculations. The bot's adapter defaults to `RSP` (`DEFAULT_BENCHMARK_SYMBOL = "RSP"` in `norgate.py`).
+
+If the advisor verifies `$SPXEW` is available post-subscription, set `norgate.benchmark_symbol = "$SPXEW"` in `config.toml` — no code change required.
+
+## 7a. Symbol conventions — confirmed 2026-05-18
+
+- **Indexes use `$`-prefix:** `$SPX`, `$RUA`, `$NDX`, `$DJI`, etc.
+- **Multi-class shares use dot notation:** `BRK.A`, `BRK.B` — matches the NYSE/NASDAQ exchange convention.
+- **ADRs sit inside `US Equities`** (not a separate database). Filtered the same way as common stocks.
+- **REITs are classified as Equity / Operating-Holding Company** — they pass the common-stock filter (which is correct for our use; advisors trade REITs like stocks).
+- **Symbol changes (FB → META):** Norgate stores history under the **current symbol only**. META's full history (including its FB era) is under `META`. There is no public SDK function to query previous symbols.
+- **`subtype1` values:** `Equity`, `Hybrid`, `Derivative`, `Debt`, `Exchange Traded Product`, `Index`, `Currency Cross`, `Cryptocurrency`.
+- **`subtype2` values for Equity subtype1:** `Operating/Holding Company` (common stocks + REITs), `Investment Company` (CEFs, BDCs), `Special Purpose Company`, `Exchange Traded Note`, `Structured Product`, `Exchange Traded Fund`, `Exchange Traded Managed Fund`, `Preferred`, `Convertible Preferred`, `Warrant`, `Right`.
+
+## 7b. Common-stock filter — required, not optional
+
+**Critical finding:** Norgate's `US Equities` database contains **all** US-listed securities, not just common stocks. ETFs, CEFs, BDCs, preferreds, warrants, and ETNs are all in there. Without filtering, a raw `database_symbols('US Equities')` call returns ~6,000-7,000 symbols, of which only ~3,500-4,000 are actual common stocks.
+
+The bot's universe loader filters via `subtype1 == 'Equity' AND subtype2 == 'Operating/Holding Company'`. This keeps:
+- Common stocks of all market caps
+- REITs (classified as Operating/Holding Companies)
+
+And excludes:
+- ETFs and ETNs
+- Closed-End Funds
+- Business Development Companies (BDCs — note: these are tradable equities but Norgate classifies as Investment Companies, which we exclude per the standard Concretum-style universe filter)
+- Preferred shares (regular and convertible)
+- Warrants, rights, special-purpose companies, structured products
+
+The filter is implemented in `norgate.is_common_stock()` and applied at universe load time via `norgate.list_common_stocks()`.
+
+**BDC note:** if the advisor wants BDCs included in scope later, change the subtype2 filter to allow both `Operating/Holding Company` and `Investment Company`, or maintain a separate watchlist of approved BDC tickers.
+
+## 7c. Exception handling — only `ValueError` is documented
+
+Per the `norgatedata` PyPI page, the SDK raises **only `ValueError`** for invalid symbols and invalid parameters. Other failure modes (NDU not running, database not built, IPC failure) typically surface as silent empty returns or low-level errors.
+
+Our adapter:
+- Catches `ValueError` explicitly for symbol/parameter errors
+- Catches generic `Exception` as a fallback for NDU-down and IPC failures
+- Wraps both into `NorgateNotConfiguredError` so the CLI can surface one consistent error to the operator
+
+Pre-flight check: call `norgate.check_status()` at the start of the overnight pipeline to verify NDU is responding before any data fetch attempts run.
 
 ---
 

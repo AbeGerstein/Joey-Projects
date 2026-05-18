@@ -20,14 +20,21 @@ backfill_years = 10
 # The Python SDK reads from a local data store the updater maintains; there is no separate API key.
 # See docs/research/norgate-data.md for setup instructions.
 
-# Watchlist name in Norgate that defines the screening universe.
-# Default is "US Equities" — the all-US-listed-common-stocks built-in watchlist.
+# Norgate database that defines the screening universe. "US Equities" is the
+# default and contains all US-listed securities (the bot filters out ETFs,
+# preferreds, BDCs, and other non-common-stock types at universe-load time).
 universe_watchlist = "US Equities"
 
 # Price adjustment mode for OHLC fetches.
 # Options: "TotalReturn" (splits + dividends), "Capital" (splits only), "None".
 # We want split + dividend adjusted for RS and signal computation.
 price_adjustment = "TotalReturn"
+
+# Equal-weight S&P 500 benchmark for Relative Strength calculations.
+# Default "RSP" (Invesco S&P 500 Equal Weight ETF) is the verified-available
+# choice. If post-subscription verification confirms "$SPXEW" (the raw index)
+# is available on the advisor's tier, change to "$SPXEW" for the raw index.
+benchmark_symbol = "RSP"
 
 
 [scoring]

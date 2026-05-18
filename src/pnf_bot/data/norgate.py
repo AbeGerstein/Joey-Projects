@@ -29,11 +29,31 @@ from typing import Any
 
 import pandas as pd
 
-# Norgate's documented benchmark for equal-weight S&P 500 RS calculations.
-# RSP (Invesco S&P 500 Equal Weight ETF) is the safe, verified-available
-# choice. The underlying index symbol ($SPXEW / SPXEWI) should be verified
-# in NDU's Database tab after subscription if we want the raw index instead.
+# Equal-weight S&P 500 benchmark for Relative Strength calculations.
+#
+# Research finding 2026-05-18: the S&P 500 Equal Weight Index ($SPXEW)
+# is NOT in Norgate's published index catalog. The listed S&P 500 family
+# is $SPX, $OEX, $MID, $SML, $SP1500, $SPDAUDP, $SPESG — no equal-weight
+# variant. It may still be accessible (verify in NDU's symbol search post-
+# subscription) but cannot be assumed.
+#
+# RSP (Invesco S&P 500 Equal Weight ETF) tracks SPXEW within ~1 basis
+# point and is the safe, verified-available default. The bot uses RSP
+# unless overridden via config.
+#
+# If post-subscription verification confirms $SPXEW is available on the
+# Platinum tier, the advisor can change `norgate.benchmark_symbol` in
+# config.toml to "$SPXEW" without code changes.
 DEFAULT_BENCHMARK_SYMBOL = "RSP"
+
+# Norgate symbol conventions for filtering the universe to common stocks.
+# Per Norgate's subtype taxonomy (confirmed in research):
+#   subtype1 == "Equity" excludes Derivatives, Debt, ETPs, Indexes, etc.
+#   subtype2 == "Operating/Holding Company" excludes ETFs, CEFs, BDCs,
+#     preferreds, warrants, rights, structured products, ETNs.
+# REITs are subtype1=Equity / subtype2=Operating/Holding so they pass.
+COMMON_STOCK_SUBTYPE1 = "Equity"
+COMMON_STOCK_SUBTYPE2 = "Operating/Holding Company"
 
 # Watchlists / databases Norgate ships with NDU. Confirmed in the research.
 DATABASE_ACTIVE = "US Equities"
@@ -95,14 +115,53 @@ def _require_sdk() -> Any:
 def _to_error(e: Exception) -> NorgateNotConfiguredError:
     """Convert generic SDK runtime errors into NorgateNotConfiguredError.
 
-    The SDK does not raise consistently when NDU is down — sometimes it
-    returns empty data, sometimes it raises various low-level errors.
-    Centralize the conversion here.
+    The SDK's documented exception is `ValueError` for invalid symbols /
+    invalid parameters. Other failure modes (NDU not running, database
+    not yet built) typically surface as silent empty returns or low-level
+    IPC errors. Centralize the conversion here so callers see one error
+    class.
     """
     return NorgateNotConfiguredError(
         f"Norgate SDK call failed: {e}. "
         "Verify NDU is running, your subscription is active, and the database is up to date."
     )
+
+
+def check_status() -> dict[str, str]:
+    """Query the Norgate SDK's status — useful as a pre-flight check.
+
+    Returns whatever the SDK's `status()` function returns (typically a
+    dict with database build timestamps and connection state). If the
+    SDK is not installed, raises NorgateNotConfiguredError.
+
+    Call this at the start of the overnight pipeline to surface
+    "NDU isn't running" before any data fetch attempts fail confusingly.
+    """
+    nd = _require_sdk()
+    try:
+        return nd.status()  # type: ignore[no-any-return]
+    except Exception as e:  # noqa: BLE001
+        raise _to_error(e) from e
+
+
+def is_common_stock(symbol: str) -> bool:
+    """Return True if the symbol is a common stock (not ETF/preferred/etc.).
+
+    Norgate stores all US-listed securities in the "US Equities" database,
+    including ETFs, CEFs, BDCs, preferreds, warrants, etc. Our screening
+    universe is **common stocks only** (including REITs, which count as
+    Operating/Holding companies in Norgate's taxonomy).
+
+    Uses Norgate's subtype1/subtype2 classification. Returns False on any
+    SDK error so unknown securities are excluded by default (conservative).
+    """
+    nd = _require_sdk()
+    try:
+        s1 = nd.subtype1(symbol)
+        s2 = nd.subtype2(symbol)
+    except (ValueError, Exception):  # noqa: BLE001
+        return False
+    return s1 == COMMON_STOCK_SUBTYPE1 and s2 == COMMON_STOCK_SUBTYPE2
 
 
 # ---------------------------------------------------------------------------
@@ -111,9 +170,12 @@ def _to_error(e: Exception) -> NorgateNotConfiguredError:
 
 
 def list_universe(database: str = DATABASE_ACTIVE) -> list[str]:
-    """Return all symbols in a Norgate database.
+    """Return all symbols in a Norgate database (raw, unfiltered).
 
-    Default is "US Equities" — every actively-listed US common stock.
+    Default is "US Equities" — every actively-listed US security, which
+    includes ETFs, CEFs, BDCs, preferreds, warrants alongside common stocks.
+    Filter the result with `is_common_stock(symbol)` for the screening
+    universe.
 
     For a survivorship-bias-free universe spanning history, combine
     list_universe(DATABASE_ACTIVE) + list_universe(DATABASE_DELISTED).
@@ -121,9 +183,22 @@ def list_universe(database: str = DATABASE_ACTIVE) -> list[str]:
     nd = _require_sdk()
     try:
         symbols = nd.database_symbols(database)
+    except ValueError as e:
+        raise _to_error(e) from e
     except Exception as e:  # noqa: BLE001
         raise _to_error(e) from e
     return list(symbols)
+
+
+def list_common_stocks(database: str = DATABASE_ACTIVE) -> list[str]:
+    """Return only the common-stock symbols in the database.
+
+    Applies `is_common_stock()` filter to exclude ETFs, CEFs, BDCs,
+    preferreds, warrants, and other non-common-stock securities that
+    Norgate stores in the same "US Equities" database. REITs are kept
+    since they classify as Operating/Holding companies.
+    """
+    return [s for s in list_universe(database) if is_common_stock(s)]
 
 
 def list_universe_at(index_name: str, as_of: date, symbol: str) -> bool:
@@ -239,7 +314,11 @@ def fetch_ohlc(
             end_date=end_date,
             timeseriesformat="pandas-dataframe",
         )
+    except ValueError as e:
+        # Invalid symbol or invalid parameters — documented SDK exception
+        raise _to_error(e) from e
     except Exception as e:  # noqa: BLE001
+        # NDU down, IPC failure, database not built
         raise _to_error(e) from e
 
     # Norgate's DataFrame uses capitalized column names; normalize.
@@ -297,10 +376,14 @@ def fetch_benchmark_ohlc(
 ) -> pd.DataFrame:
     """Fetch the equal-weight S&P 500 benchmark for RS calculations.
 
-    Defaults to RSP (Invesco S&P 500 Equal Weight ETF), which is verified
-    available in Norgate's coverage. The underlying $SPXEW index symbol
-    should be verified in NDU's Database tab post-subscription if you want
-    the raw index instead.
+    Defaults to RSP (Invesco S&P 500 Equal Weight ETF), which is the
+    verified-available equal-weight benchmark in Norgate's coverage.
+    Research as of 2026-05-18 did not find $SPXEW in Norgate's published
+    index catalog — it may exist on subscription but cannot be assumed.
+
+    If the advisor verifies $SPXEW is available post-subscription, set
+    `norgate.benchmark_symbol = "$SPXEW"` in config.toml to use the raw
+    index instead of the ETF.
     """
     return fetch_ohlc(
         benchmark_symbol,
