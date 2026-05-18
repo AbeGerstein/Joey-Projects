@@ -149,57 +149,87 @@ def find_bearish_resistance_line(
 
 
 def is_above_bullish_support(chart: PnFChart, lookback_columns: int | None = None) -> bool:
-    """True if the chart's current column's bottom is above the bullish support line.
+    """True if the bullish support line is still in force (not broken).
 
-    Returns False if no support line can be drawn (insufficient history).
+    Per Dorsey: a bullish support line is "in force" until an O column
+    drops below it. While in force, the chart is considered to be in a
+    positive trend.
+
+    Returns False if no support line can be drawn or if any O column after
+    the anchor has dropped below the line at its column index.
     """
     line = find_bullish_support_line(chart, lookback_columns)
     if line is None or not chart.columns:
         return False
-    current_idx = len(chart.columns) - 1
-    return chart.columns[current_idx].bottom >= line.price_at_column(current_idx)
+    for i, col in enumerate(chart.columns):
+        if i <= line.anchor_column_index:
+            continue
+        if col.type != "O":
+            continue
+        if col.bottom < line.price_at_column(i):
+            return False
+    return True
 
 
 def is_below_bearish_resistance(chart: PnFChart, lookback_columns: int | None = None) -> bool:
-    """True if the chart's current column's top is below the bearish resistance line."""
+    """True if the bearish resistance line is still in force (not broken).
+
+    The line is broken when an X column's top exceeds it.
+    """
     line = find_bearish_resistance_line(chart, lookback_columns)
     if line is None or not chart.columns:
         return False
-    current_idx = len(chart.columns) - 1
-    return chart.columns[current_idx].top <= line.price_at_column(current_idx)
+    for i, col in enumerate(chart.columns):
+        if i <= line.anchor_column_index:
+            continue
+        if col.type != "X":
+            continue
+        if col.top > line.price_at_column(i):
+            return False
+    return True
 
 
 def boxes_above_bullish_support(chart: PnFChart, lookback_columns: int | None = None) -> int:
-    """How many boxes is the current column above the bullish support line?
+    """How many boxes is the most recent X column's top above the bullish support line?
 
-    Returns 0 if no line exists or the current column is at/below the line.
-    Useful for "extended" anti-pattern detection — large values flag
-    a chart that has rallied far past its support.
+    Measures "extension" — how far the rally has run past the support line.
+    Used by anti-pattern detection to flag overextended charts. Returns 0
+    if no line exists or the most recent X column is at/below the line.
     """
     line = find_bullish_support_line(chart, lookback_columns)
     if line is None or not chart.columns:
         return 0
-    current_idx = len(chart.columns) - 1
-    current = chart.columns[current_idx]
-    line_price = line.price_at_column(current_idx)
-    if current.top < line_price:
+    # Find the most recent X column
+    last_x_idx = None
+    for i in range(len(chart.columns) - 1, -1, -1):
+        if chart.columns[i].type == "X":
+            last_x_idx = i
+            break
+    if last_x_idx is None:
         return 0
-    return int((current.top - line_price) / current.box_size)
+    last_x = chart.columns[last_x_idx]
+    line_price = line.price_at_column(last_x_idx)
+    if last_x.top < line_price:
+        return 0
+    return int((last_x.top - line_price) / last_x.box_size)
 
 
 def boxes_below_bearish_resistance(
     chart: PnFChart, lookback_columns: int | None = None
 ) -> int:
-    """How many boxes is the current column below the bearish resistance line?
-
-    Returns 0 if no line exists or the current column is at/above the line.
-    """
+    """How many boxes is the most recent O column's bottom below the bearish resistance line?"""
     line = find_bearish_resistance_line(chart, lookback_columns)
     if line is None or not chart.columns:
         return 0
-    current_idx = len(chart.columns) - 1
-    current = chart.columns[current_idx]
-    line_price = line.price_at_column(current_idx)
-    if current.bottom > line_price:
+    last_o_idx = None
+    for i in range(len(chart.columns) - 1, -1, -1):
+        if chart.columns[i].type == "O":
+            last_o_idx = i
+            break
+    if last_o_idx is None:
         return 0
-    return int((line_price - current.bottom) / current.box_size)
+    last_o = chart.columns[last_o_idx]
+    line_price = line.price_at_column(last_o_idx)
+    if last_o.bottom > line_price:
+        return 0
+    return int((line_price - last_o.bottom) / last_o.box_size)
