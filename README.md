@@ -8,9 +8,9 @@ This project is being built for a financial advisor at a wealth management firm.
 
 ## Status
 
-Project initiated **2026-05-15**. Currently in **Phase 0 (Discovery & Compliance)**. No production code yet; documentation and methodology are being assembled first.
+Project initiated **2026-05-15**. Phase 0 (Discovery & Compliance) complete as of **2026-05-18**. Data path locked in: **Norgate Data Platinum** ($53/mo) as the sole OHLC source, with our P&F engine computing all signals, RS, BPI, and a self-built TA-equivalent composite score. The advisor's existing DWA platform subscription remains his personal cross-check tool but is not in the bot's pipeline.
 
-See [docs/00-project-outline.md](docs/00-project-outline.md) for the full phased plan and where we are within it.
+Ready to begin Phase 1 build work pending Norgate subscription activation. See [docs/00-project-outline.md](docs/00-project-outline.md) for the full phased plan with effort estimates per phase.
 
 ---
 

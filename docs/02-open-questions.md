@@ -16,10 +16,10 @@ Each item is tagged with:
 
 ---
 
-## OQ-002: DWA access path — PROVISIONALLY RESOLVED 2026-05-16 (pending pricing)
+## ~~OQ-002: DWA access path~~ — RESOLVED 2026-05-18
 
-- **Resolution:** Option A — license the Nasdaq Data Link NDW database. Provisional, pending Nasdaq Data Link pricing quote and confirmation of coverage. See [decisions log 2026-05-16](01-decisions-log.md#2026-05-16--dwa-access-path-nasdaq-data-link-ndw-database-provisional-pending-pricing-partial-oq-002) and forthcoming [research/ndw-data-link-pricing.md](research/ndw-data-link-pricing.md).
-- **Still open:** Final cost confirmation. If pricing exceeds the project budget, options B (manual export) or C (replicate) come back on the table — though both have downsides at this point (B incompatible with daily cadence, C missing the Technical Attributes score the advisor relies on).
+- **Resolution:** Norgate Data Platinum only. No NDWEQTA, no manual DWA export, no DWA data in the bot's pipeline. The advisor's existing DWA platform subscription remains his personal cross-check tool. See [decisions log 2026-05-18](01-decisions-log.md#2026-05-18--dwa-access-path-final-norgate-only-resolves-oq-002).
+- **Cost:** $53/mo Norgate + ~$10/mo hosting = ~$63/mo total, deferred until build hours are scoped.
 
 ---
 

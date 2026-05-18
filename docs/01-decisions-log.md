@@ -204,6 +204,21 @@ Format for each entry:
 
 ---
 
+## 2026-05-18 — DWA access path FINAL: Norgate-only (resolves OQ-002)
+
+- **Decision:** Build the bot on the **Norgate Data Platinum** OHLC feed only. The bot's signals, RS, BPI, and TA-equivalent composite are all computed by our P&F engine. No NDWEQTA license, no manual DWA export workflow, no DWA data in the bot's daily pipeline.
+- **Rationale:** Advisor decided 2026-05-18 not to pursue the Nasdaq sales callback any further at this stage. He's also deferring the Norgate purchase itself until he sees an estimate of remaining build hours (he's paying the developer hourly and wants to scope the commitment). The Norgate-only path is the cheapest, simplest, lowest-friction architecture and produces a bot whose recommendations are determined by our P&F engine on clean Norgate OHLC — independent of any DWA-side data dependency.
+- **Status:** Confirmed — fully resolves OQ-002.
+- **Context:** User stated 2026-05-18: "ok we will be using the norgate subscription. He is not going to buy it yet as he wants to see how many more hours itll take to build as he is paying me hourly. So, from now we will start building the bot assuming we will be using norgate, but first we need to finish the outline so the production of the bot goes more easily."
+- **Implications:**
+  - Phase 1 data foundation work proceeds against Norgate's Python SDK as the OHLC source
+  - The bot's authoritative TA-equivalent score is the internal composite we build (see [methodology/pre-momentum-detection.md](methodology/pre-momentum-detection.md))
+  - The advisor's existing DWA Research Platform subscription remains his personal cross-check tool but is NOT in the bot's data pipeline
+  - If at some future point NDWEQTA becomes attractive (cheap quote, advisor changes mind on the TA-score dependency), the bot's data layer is built to swap in additional sources without rewriting the rest of the architecture
+- **Cost:** $53/month (Norgate Platinum) + ~$10/month hosting = ~$63/month total recurring; **deferred until build hours are scoped**
+
+---
+
 ## 2026-05-17 — Revived: existing-DWA-subscription + manual export path (informs OQ-002)
 
 - **Decision (informational):** The "use the existing DWA Research Platform subscription via daily manual CSV exports" path — previously dismissed as incompatible with the daily cadence — has been re-evaluated and elevated to the **strongest v1 candidate** pending verification of the platform's export capabilities. The version that holds up is the one paired with an OHLC vendor (Norgate $53/mo); see expanded [Option A0b in research/ndw-data-link-alternatives.md](research/ndw-data-link-alternatives.md#a0b-existing-dwa-platform-subscription--daily-manual-csv-export--norgate-for-ohlc--strong-v1-candidate).
