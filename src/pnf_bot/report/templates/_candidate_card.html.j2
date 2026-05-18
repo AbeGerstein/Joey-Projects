@@ -1,0 +1,74 @@
+<div class="candidate">
+  <div class="candidate-header">
+    <div>
+      <span class="symbol">{{ d.symbol }}</span>
+      {% if d.company_name %}<span style="color: #757575;"> · {{ d.company_name }}</span>{% endif %}
+      {% if d.sector %}<span style="color: #9E9E9E; font-size: 9pt;"> · {{ d.sector }}</span>{% endif %}
+    </div>
+    <div class="score">
+      Score <strong>{{ "%.2f"|format(d.final_score) }}</strong>
+      (base {{ "%.2f"|format(d.base_score) }} × freshness {{ "%.1f"|format(d.freshness_multiplier) }}×)
+    </div>
+  </div>
+
+  <div class="badges">
+    {% if d.section == "pre_momentum" %}
+      <span class="badge badge-pre">PRE-MOMENTUM</span>
+    {% else %}
+      <span class="badge badge-in">IN-MOMENTUM</span>
+    {% endif %}
+    <span class="badge" style="background: #ECEFF1; color: #455A64;">{{ d.primary_pattern|replace("_", " ") }}</span>
+    {% if d.fired_last_night %}<span class="badge badge-fresh">FRESH</span>{% endif %}
+    {% if d.rs_signal_status == "buy" %}<span class="badge badge-rs-buy">RS BUY</span>
+    {% elif d.rs_signal_status == "sell" %}<span class="badge badge-rs-sell">RS SELL</span>{% endif %}
+  </div>
+
+  <div class="charts">
+    <div class="pnf-chart">
+      <img src="data:image/png;base64,{{ d.pnf_chart_b64 }}" alt="P&F chart {{ d.symbol }}">
+    </div>
+    {% if d.rs_chart_b64 %}
+    <div class="rs-chart">
+      <img src="data:image/png;base64,{{ d.rs_chart_b64 }}" alt="RS chart {{ d.symbol }}">
+    </div>
+    {% endif %}
+  </div>
+
+  <div class="reasoning">{{ d.pattern_reasoning }}</div>
+
+  <div class="detail-grid">
+    {% if d.current_price %}<div class="label">Current price:</div><div class="value">${{ d.current_price }}</div>{% endif %}
+    {% if d.suggested_entry %}<div class="label">Suggested entry:</div><div class="value">${{ d.suggested_entry }}</div>{% endif %}
+    {% if d.suggested_stop %}<div class="label">P&F stop:</div><div class="value">${{ d.suggested_stop }}</div>{% endif %}
+    <div class="label">Internal TA score:</div>
+    <div class="value">{{ d.internal_ta_score }}/5{% if d.dwa_ta_score is not none %} (DWA: {{ d.dwa_ta_score }}/5){% endif %}</div>
+    <div class="label">Above bullish support:</div>
+    <div class="value">{% if d.above_bullish_support %}Yes ({{ d.boxes_above_support }} boxes){% else %}No{% endif %}</div>
+    <div class="label">RS posture:</div>
+    <div class="value">
+      {{ d.rs_signal_status }}
+      {% if d.rs_positive_trend %} · positive trend{% endif %}
+    </div>
+    {% if d.sector_bpi_state %}
+    <div class="label">Sector BPI state:</div>
+    <div class="value">{{ d.sector_bpi_state|replace("_", " ") }}{% if d.sector_bpi_value %} ({{ d.sector_bpi_value }}%){% endif %}</div>
+    {% endif %}
+  </div>
+
+  {% if d.recent_signals %}
+  <h3>Recent signal history</h3>
+  <table class="signals-table">
+    <tr><th>Type</th><th>Direction</th><th>Date</th><th>Level</th></tr>
+    {% for s in d.recent_signals %}
+    <tr>
+      <td>{{ s.signal_type|replace("_", " ") }}</td>
+      <td class="{% if s.direction == 'bullish' %}bullish{% else %}bearish{% endif %}">{{ s.direction }}</td>
+      <td>{{ s.fired_date }}</td>
+      <td>${{ s.price_level }}</td>
+    </tr>
+    {% endfor %}
+  </table>
+  {% endif %}
+
+  <div style="font-size: 8pt; color: #757575; margin-top: 6pt;">{{ d.notes }}</div>
+</div>

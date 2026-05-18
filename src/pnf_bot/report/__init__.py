@@ -16,8 +16,19 @@ Public API:
 """
 
 from pnf_bot.report.charts import render_pnf_chart, render_rs_chart
+from pnf_bot.report.detail import (
+    SignalHistoryEntry,
+    StockDetailRecord,
+    compile_stock_detail,
+)
+from pnf_bot.report.render import render_html_report, render_pdf_report
 
 __all__ = [
+    "SignalHistoryEntry",
+    "StockDetailRecord",
+    "compile_stock_detail",
+    "render_html_report",
+    "render_pdf_report",
     "render_pnf_chart",
     "render_rs_chart",
 ]
