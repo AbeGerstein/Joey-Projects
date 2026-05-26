@@ -290,25 +290,40 @@ Report to the human:
 
 ---
 
-## Phase E — Gmail SMTP setup (HUMAN ONLY, can run in parallel with D.3)
+## Phase E — SMTP setup (HUMAN ONLY, can run in parallel with D.3)
 
-**Goal:** a Gmail account is ready to send the daily report email from, with an app password the bot can use.
+**Goal:** an email account is ready to send the daily report from, with an app password the bot can use. Either Yahoo or Gmail works; ask the human which the advisor uses.
 
 🧑 **HUMAN ACTION REQUIRED**:
-1. Pick a Gmail account to send from. Can be:
-   - The advisor's personal Gmail
-   - A dedicated bot account (e.g., create a new Gmail just for this)
-   - Your own (the developer's) Gmail — easiest for testing
-2. Make sure that account has 2-Factor Authentication enabled. If not:
-   - Visit <https://myaccount.google.com/security>
-   - Sign in, enable 2FA
-3. Visit <https://myaccount.google.com/apppasswords>
-4. Sign in with the account from step 1
-5. Create a new app password. Name it "PnF Bot"
-6. Google shows a 16-character password like `abcd efgh ijkl mnop`
-7. **Save this password somewhere** — you'll paste it into config.toml in Phase F.2. Google won't show it again after you close the dialog.
 
-You (Claude) cannot do this step. Wait for the human to confirm they have the app password.
+### If the advisor uses Yahoo (most likely path — Jromero816@yahoo.com is on Yahoo)
+
+1. Visit <https://login.yahoo.com/account/security>
+2. Sign in to the Yahoo account that will SEND emails (the advisor's own Yahoo account is fine — sending to himself is normal)
+3. Enable **Two-step verification** if not already on (Yahoo requires it for app passwords)
+4. Find **"Generate and manage app passwords"** (sometimes under "Other ways to sign in")
+5. Generate a new app password. Name it "PnF Bot"
+6. Yahoo shows a 16-character password — copy it (Yahoo only shows it once)
+
+SMTP settings for Yahoo:
+- `smtp_host = "smtp.mail.yahoo.com"`
+- `smtp_port = 587`
+- `smtp_use_tls = true`
+
+### If using Gmail instead
+
+1. Pick a Gmail account to send from (the advisor's, a dedicated bot account, or the developer's)
+2. Ensure 2-Factor Authentication is enabled on that account
+3. Visit <https://myaccount.google.com/apppasswords>
+4. Generate a new app password named "PnF Bot"
+5. Copy the 16-character password (Google only shows it once)
+
+SMTP settings for Gmail:
+- `smtp_host = "smtp.gmail.com"`
+- `smtp_port = 587`
+- `smtp_use_tls = true`
+
+You (Claude) cannot do this step. Wait for the human to confirm they have the app password and tell you which provider (Yahoo or Gmail).
 
 ---
 

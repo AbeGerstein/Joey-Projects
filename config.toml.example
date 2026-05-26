@@ -59,14 +59,27 @@ archive_dir = "reports/archive"
 
 
 [email]
-# SMTP delivery. For Yahoo recipients, any sane SMTP relay works.
-# If using Gmail SMTP relay, an app-password is required.
-smtp_host = "smtp.example.com"
+# SMTP delivery. The bot uses stdlib smtplib so any SMTP server works.
+# Both Yahoo and Gmail require an "app password" (generated via the
+# provider's account-security page) — NOT the regular login password.
+#
+# === Option A — Yahoo SMTP (recommended if sending from a Yahoo account) ===
+# Generate app password at https://login.yahoo.com/account/security
+smtp_host = "smtp.mail.yahoo.com"
 smtp_port = 587
-smtp_user = "noreply@example.com"
-smtp_password = "REPLACE_WITH_APP_PASSWORD"
-smtp_from = "PnF Bot <noreply@example.com>"
+smtp_user = "Jromero816@yahoo.com"                     # ← Yahoo address sending FROM
+smtp_password = "REPLACE_WITH_YAHOO_APP_PASSWORD"      # ← 16-char app password
+smtp_from = "PnF Bot <Jromero816@yahoo.com>"           # ← match smtp_user's address
 smtp_use_tls = true
+#
+# === Option B — Gmail SMTP (alternative; comment out Yahoo block above) ===
+# Generate app password at https://myaccount.google.com/apppasswords
+# smtp_host = "smtp.gmail.com"
+# smtp_port = 587
+# smtp_user = "<gmail_address>@gmail.com"
+# smtp_password = "REPLACE_WITH_GMAIL_APP_PASSWORD"
+# smtp_from = "PnF Bot <<gmail_address>@gmail.com>"
+# smtp_use_tls = true
 
 
 [scheduler]

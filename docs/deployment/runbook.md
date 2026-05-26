@@ -139,12 +139,23 @@ The laptop must not sleep overnight or the bot will fail:
 
 ## Phase 3 — Bot configuration
 
-### 3.1 Set up Gmail SMTP credentials
+### 3.1 Set up SMTP credentials (Gmail or Yahoo)
 
-The bot sends email via Gmail SMTP. You need an **app password** (not your regular Gmail password):
+The bot sends email via SMTP — either Gmail or Yahoo works. The advisor uses Yahoo (Jromero816@yahoo.com), so it's simplest to send FROM the same Yahoo account, since he already has it and there's no second account to manage. Pick whichever you prefer:
+
+#### Option A — Yahoo SMTP (recommended if the advisor uses Yahoo)
+
+1. Visit <https://login.yahoo.com/account/security>
+2. Sign in as the Yahoo account you want emails to send FROM (the advisor's Jromero816@yahoo.com is the natural choice)
+3. **Enable Two-step verification** if not already on (required for app passwords)
+4. Find **"Generate and manage app passwords"** or **"Other ways to sign in"** → app passwords
+5. Generate a new app password. Name it "PnF Bot." Yahoo gives you a 16-character password (similar format to Gmail's app passwords).
+6. Copy this password — Yahoo only shows it once.
+
+#### Option B — Gmail SMTP
 
 1. Visit <https://myaccount.google.com/apppasswords>
-2. Sign in with the Gmail account you want emails to come FROM (can be the same as the recipient, or any other Gmail account you control)
+2. Sign in with the Gmail account you want emails to come FROM
 3. If 2-Factor Authentication isn't enabled on that account, enable it first (Google requires 2FA for app passwords)
 4. Create a new app password. Name it "PnF Bot." Google gives you a 16-character password like `abcd efgh ijkl mnop`.
 5. Copy this password. You'll paste it into `config.toml` next.
@@ -181,13 +192,25 @@ delivery_time = "08:00"
 delivery_timezone = "America/Denver"
 archive_dir = "reports/archive"
 
+# [email] — choose ONE of the two options below based on which SMTP provider you set up in 3.1
+
+# Option A — Yahoo SMTP (if sending from the advisor's Yahoo account)
 [email]
-smtp_host = "smtp.gmail.com"
+smtp_host = "smtp.mail.yahoo.com"
 smtp_port = 587
-smtp_user = "<YOUR_GMAIL_ADDRESS>@gmail.com"    # ← replace
-smtp_password = "<YOUR_16_CHAR_APP_PASSWORD>"   # ← replace
-smtp_from = "PnF Bot <<YOUR_GMAIL_ADDRESS>@gmail.com>"  # ← replace
+smtp_user = "Jromero816@yahoo.com"                # ← the Yahoo address sending FROM
+smtp_password = "<YAHOO_16_CHAR_APP_PASSWORD>"    # ← replace
+smtp_from = "PnF Bot <Jromero816@yahoo.com>"      # ← match smtp_user's address
 smtp_use_tls = true
+
+# Option B — Gmail SMTP (if sending from a Gmail account)
+# [email]
+# smtp_host = "smtp.gmail.com"
+# smtp_port = 587
+# smtp_user = "<YOUR_GMAIL_ADDRESS>@gmail.com"    # ← replace
+# smtp_password = "<GMAIL_16_CHAR_APP_PASSWORD>"  # ← replace
+# smtp_from = "PnF Bot <<YOUR_GMAIL_ADDRESS>@gmail.com>"  # ← replace
+# smtp_use_tls = true
 
 [scheduler]
 run_time = "03:00"

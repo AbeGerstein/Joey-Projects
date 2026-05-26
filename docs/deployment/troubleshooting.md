@@ -96,13 +96,20 @@ pip install -e .[norgate]
 
 ### `SMTPAuthenticationError: 535 5.7.8 Username and Password not accepted`
 
-**Cause:** Wrong Gmail app password, or you used your regular Gmail password instead of an app password.
+**Cause:** Wrong app password, OR you used the regular login password instead of an app password.
 
-**Fix:**
+**Fix for Gmail SMTP:**
 1. Verify 2-Factor Authentication is enabled on the Gmail account: <https://myaccount.google.com/security>
 2. Generate a new app password at <https://myaccount.google.com/apppasswords>
 3. Paste the 16-character password into `config.toml`'s `smtp_password` field (spaces in the password are OK, the bot strips them)
 4. Make sure `smtp_user` matches the Gmail address you generated the app password for
+
+**Fix for Yahoo SMTP:**
+1. Verify Two-step verification is enabled at <https://login.yahoo.com/account/security>
+2. Generate a new app password from "Other ways to sign in" → "Generate and manage app passwords"
+3. Paste the 16-character password into `config.toml`'s `smtp_password` field
+4. Make sure `smtp_user` matches the Yahoo address (e.g., `Jromero816@yahoo.com`)
+5. Confirm `smtp_host = "smtp.mail.yahoo.com"` (not `smtp.gmail.com`)
 
 ### `SMTPSenderRefused: 553 ... not allowed`
 
