@@ -27,7 +27,7 @@ from datetime import date
 from decimal import Decimal
 from typing import Literal
 
-from pnf_bot.pnf.signals import detect_signals
+from pnf_bot.pnf.signals import detect_signals, latest_signal
 from pnf_bot.pnf.types import PnFChart
 from pnf_bot.scoring.types import PatternMatch
 
@@ -273,6 +273,15 @@ def detect_bullish_catapult_forming(chart: PnFChart) -> PatternMatch | None:
     """
     cols = chart.columns
     if len(cols) < 4:
+        return None
+
+    # The structural pattern (TT-then-pullback) can still match while the
+    # chart is in active breakdown — the post-TT O column may have gone deep
+    # enough to fire fresh SELL signals. Reject those cases up front: a
+    # genuine pre-catapult chart never has a bearish signal as its most
+    # recent event.
+    most_recent = latest_signal(chart)
+    if most_recent is not None and most_recent.is_bearish:
         return None
 
     # Look for a recent TT structurally — need 3 X cols with the most recent

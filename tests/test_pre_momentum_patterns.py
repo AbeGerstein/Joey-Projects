@@ -176,6 +176,78 @@ class TestBullishCatapultForming:
         chart = construct_chart("T", _bars(date(2026, 1, 5), bars))
         assert detect_bullish_catapult_forming(chart) is None
 
+    def _synthetic_catapult_forming_chart(self):  # noqa: ANN202
+        """Build a chart that DOES structurally match catapult-forming.
+
+        Structure: 2 equal-top X cols at 50, breakout X col to 55 (TT), then an
+        O pullback, current is a fresh X column not yet exceeding the TT top.
+        """
+        from pnf_bot.pnf.types import Column, PnFChart
+
+        box = Decimal("1")
+        cols = (
+            # Two earlier columns with equal X tops at 50
+            Column(type="X", top=Decimal("50"), bottom=Decimal("45"), box_size=box,
+                   start_date=date(2026, 1, 5), end_date=date(2026, 1, 9)),
+            Column(type="O", top=Decimal("49"), bottom=Decimal("46"), box_size=box,
+                   start_date=date(2026, 1, 10), end_date=date(2026, 1, 12)),
+            Column(type="X", top=Decimal("50"), bottom=Decimal("47"), box_size=box,
+                   start_date=date(2026, 1, 13), end_date=date(2026, 1, 15)),
+            Column(type="O", top=Decimal("49"), bottom=Decimal("46"), box_size=box,
+                   start_date=date(2026, 1, 16), end_date=date(2026, 1, 18)),
+            # Breakout X: TT fired at 51
+            Column(type="X", top=Decimal("55"), bottom=Decimal("47"), box_size=box,
+                   start_date=date(2026, 1, 19), end_date=date(2026, 1, 26)),
+            # Pullback O
+            Column(type="O", top=Decimal("54"), bottom=Decimal("48"), box_size=box,
+                   start_date=date(2026, 1, 27), end_date=date(2026, 2, 2)),
+            # Current: new X not yet exceeding 55
+            Column(type="X", top=Decimal("52"), bottom=Decimal("49"), box_size=box,
+                   start_date=date(2026, 2, 3), end_date=date(2026, 2, 5)),
+        )
+        return PnFChart(symbol="T", columns=cols, box_scaling_label="traditional")
+
+    def test_baseline_synthetic_chart_matches(self, monkeypatch) -> None:  # noqa: ANN001
+        """Sanity: the synthetic chart matches catapult-forming when latest
+        signal is bullish (so the guard doesn't trip)."""
+        from types import SimpleNamespace
+
+        from pnf_bot.scoring import pre_momentum
+
+        bullish = SimpleNamespace(is_bullish=True, is_bearish=False)
+        monkeypatch.setattr(pre_momentum, "latest_signal", lambda _chart: bullish)
+
+        chart = self._synthetic_catapult_forming_chart()
+        match = detect_bullish_catapult_forming(chart)
+        assert match is not None
+        assert match.pattern_type == "bullish_catapult_forming"
+
+    def test_guard_rejects_when_latest_signal_is_bearish(self, monkeypatch) -> None:  # noqa: ANN001
+        """Regression: a chart that STRUCTURALLY matches catapult-forming must
+        still be rejected if its most recent signal is bearish (e.g., the O
+        pullback fired a double_bottom because it went too deep)."""
+        from types import SimpleNamespace
+
+        from pnf_bot.scoring import pre_momentum
+
+        bearish = SimpleNamespace(is_bullish=False, is_bearish=True)
+        monkeypatch.setattr(pre_momentum, "latest_signal", lambda _chart: bearish)
+
+        chart = self._synthetic_catapult_forming_chart()
+        assert detect_bullish_catapult_forming(chart) is None
+
+    def test_guard_passes_when_no_signals(self, monkeypatch) -> None:  # noqa: ANN001
+        """Edge case: very early chart with no signals at all should not be
+        rejected by the guard (latest_signal returns None)."""
+        from pnf_bot.scoring import pre_momentum
+
+        monkeypatch.setattr(pre_momentum, "latest_signal", lambda _chart: None)
+
+        chart = self._synthetic_catapult_forming_chart()
+        match = detect_bullish_catapult_forming(chart)
+        # Structural match should still fire — guard only rejects bearish-most-recent
+        assert match is not None
+
 
 # ---------------------------------------------------------------------------
 # Sector BPI inflection
