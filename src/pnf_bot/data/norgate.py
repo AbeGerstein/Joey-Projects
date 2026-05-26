@@ -24,7 +24,7 @@ operator can fix it before retrying.
 from __future__ import annotations
 
 from dataclasses import dataclass
-from datetime import date
+from datetime import date, timedelta
 from typing import Any
 
 import pandas as pd
@@ -304,6 +304,13 @@ def fetch_ohlc(
         raise ValueError(
             f"Unknown adjustment {adjustment!r}; must be one of {list(adjustment_map)}"
         )
+
+    # Norgate's price_timeseries returns 0 rows when both start_date and end_date
+    # are None (it does not interpret that as "all history"). Default to a wide
+    # window so callers that want "everything" get everything.
+    if start_date is None and end_date is None:
+        end_date = date.today()
+        start_date = end_date - timedelta(days=365 * 30)
 
     try:
         df = nd.price_timeseries(
