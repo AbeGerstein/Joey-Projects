@@ -4,13 +4,15 @@ Everything you need to take the bot from "code in a repo" to "running daily on t
 
 Read in this order:
 
-1. **[runbook.md](runbook.md)** — step-by-step setup procedure. The complete deployment from a blank Windows laptop to a scheduled daily run. Allow a few hours; most of that is Norgate's initial database build.
+1. **[runbook.md](runbook.md)** — step-by-step setup procedure for a human operator. The complete deployment from a blank Windows laptop to a scheduled daily run. Allow a few hours; most of that is Norgate's initial database build.
 
-2. **[troubleshooting.md](troubleshooting.md)** — every error you might hit during deployment or operation, with what's wrong and how to fix it.
+2. **[claude-laptop-setup-prompt.md](claude-laptop-setup-prompt.md)** — the same setup procedure, written for a Claude Code session running on the laptop to follow autonomously. **Use this if you're opening Claude Code on the laptop to automate deployment.** Tell that session to read `CLAUDE.md` first, then this file, then execute the phases in order.
 
-3. **[maintenance.md](maintenance.md)** — weekly, monthly, quarterly, and annual operational tasks. Most importantly: the weekly `update_forward_returns` call that populates live performance data.
+3. **[troubleshooting.md](troubleshooting.md)** — every error you might hit during deployment or operation, with what's wrong and how to fix it.
 
-4. **[working-with-claude.md](working-with-claude.md)** — how to use Claude productively across the Codespace dev environment and the laptop production environment. The error-to-fix loop, when to develop where, common merge-conflict scenarios.
+4. **[maintenance.md](maintenance.md)** — weekly, monthly, quarterly, and annual operational tasks. Most importantly: the weekly `update_forward_returns` call that populates live performance data.
+
+5. **[working-with-claude.md](working-with-claude.md)** — how to use Claude productively across the Codespace dev environment and the laptop production environment. The error-to-fix loop, when to develop where, common merge-conflict scenarios.
 
 ---
 
