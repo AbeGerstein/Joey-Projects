@@ -82,6 +82,49 @@ def test_fetch_ohlc_preserves_partial_dates(fake_sdk: _FakeSDK) -> None:
     assert fake_sdk.last_call_kwargs["start_date"] is None
 
 
+def test_fetch_ohlc_propagates_value_error_not_norgate_not_configured(
+    fake_sdk: _FakeSDK, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Regression: a per-symbol ValueError ('symbol not found') must propagate
+    as ValueError, NOT get wrapped into NorgateNotConfiguredError.
+
+    The whole pipeline depends on this: daily_run / refresh_latest_prices skip
+    per-symbol failures via a broad `except Exception: continue`, but they
+    re-raise NorgateNotConfiguredError as fatal. If a missing ticker were
+    wrapped, one bad symbol would poison the entire daily run (which is
+    exactly what happened 2026-05-27 with ticker AGAE).
+    """
+    def raise_value(symbol, **kwargs):  # noqa: ANN001, ANN003, ANN201
+        raise ValueError(f"price_timeseries: {symbol} not found")
+
+    monkeypatch.setattr(fake_sdk, "price_timeseries", raise_value)
+
+    with pytest.raises(ValueError, match="not found"):
+        norgate.fetch_ohlc("BOGUS")
+
+    # And NOT NorgateNotConfiguredError
+    try:
+        norgate.fetch_ohlc("BOGUS")
+    except norgate.NorgateNotConfiguredError:
+        pytest.fail("ValueError must not be wrapped into NorgateNotConfiguredError")
+    except ValueError:
+        pass
+
+
+def test_fetch_ohlc_wraps_other_exceptions_as_not_configured(
+    fake_sdk: _FakeSDK, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """A non-ValueError SDK failure (e.g., NDU is down) still becomes
+    NorgateNotConfiguredError so the CLI can surface it clearly."""
+    def raise_runtime(symbol, **kwargs):  # noqa: ANN001, ANN003, ANN201
+        raise RuntimeError("NDU IPC pipe broken")
+
+    monkeypatch.setattr(fake_sdk, "price_timeseries", raise_runtime)
+
+    with pytest.raises(norgate.NorgateNotConfiguredError):
+        norgate.fetch_ohlc("AAPL")
+
+
 def test_fetch_ohlc_normalizes_norgate_column_names(fake_sdk: _FakeSDK, monkeypatch: pytest.MonkeyPatch) -> None:
     """Norgate returns capitalized column names; fetch_ohlc must lowercase them."""
     sample = pd.DataFrame(

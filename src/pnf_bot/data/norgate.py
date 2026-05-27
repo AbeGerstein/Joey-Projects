@@ -321,11 +321,14 @@ def fetch_ohlc(
             end_date=end_date,
             timeseriesformat="pandas-dataframe",
         )
-    except ValueError as e:
-        # Invalid symbol or invalid parameters — documented SDK exception
-        raise _to_error(e) from e
+    except ValueError:
+        # Per-symbol failure (e.g., "symbol not found"). Let the caller decide
+        # — refresh_latest_prices and daily_run skip single-symbol failures
+        # rather than abort the whole run. Wrapping this in
+        # NorgateNotConfiguredError would mis-classify it as fatal.
+        raise
     except Exception as e:  # noqa: BLE001
-        # NDU down, IPC failure, database not built
+        # NDU down, IPC failure, database not built — these ARE fatal.
         raise _to_error(e) from e
 
     # Norgate's DataFrame uses capitalized column names; normalize.
