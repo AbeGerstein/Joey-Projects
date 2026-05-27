@@ -108,43 +108,47 @@ def refresh_prices(cfg) -> None:  # noqa: ANN001
 @main.command(name="daily-run")
 @click.pass_obj
 def daily_run(cfg) -> None:  # noqa: ANN001
-    """Full overnight pipeline — data refresh + analysis + report generation + email.
+    """Full overnight pipeline using the checklist methodology.
 
     Steps:
-    1. Refresh universe metadata from Norgate
-    2. Pull the latest OHLC bars (incremental)
-    3. Run scoring over the universe (Section A pre-momentum + Section B in-momentum)
-    4. Compile per-stock details and render HTML + PDF
-    5. Send email to the advisor with the PDF attached
-    6. Persist the report and delivery outcome to the audit log
+    1. Refresh universe metadata + latest prices from Norgate.
+    2. Build per-stock state (charts, latest signals, TA composite).
+    3. Compute YESTERDAY's TA per stock (chart with one less bar).
+    4. Aggregate sector indicators (BP/RSX/RSP/PT → Favored/Average/Unfavored).
+    5. Rank stocks within each sector.
+    6. Run the checklist ranker → List 1 (fired today) + List 2 (one box away).
+    7. Render HTML/PDF.
+    8. Send email and persist the audit log.
 
-    Errors at any step are logged and the audit row records the failure.
+    Errors at any step are logged; the audit row records the outcome.
     """
     from datetime import date
 
+    from sqlalchemy import select
+
     from pnf_bot.data import norgate, prices, universe
     from pnf_bot.data import storage as storage_mod
-    from pnf_bot.feedback import record_recommendation
     from pnf_bot.pnf import construct_chart, construct_rs_chart
+    from pnf_bot.pnf.signals import latest_signal
+    from pnf_bot.pnf.trendlines import is_above_bullish_support
     from pnf_bot.report import (
         SmtpConfig,
-        compile_stock_detail,
         persist_report_to_audit_log,
-        render_html_report,
-        render_pdf_report,
+        render_checklist_html,
+        render_checklist_pdf,
         send_report_email,
     )
-    from pnf_bot.scoring.composite import (
-        build_daily_report,
-        score_stock_in_momentum,
-        score_stock_pre_momentum,
-    )
+    from pnf_bot.scoring.checklist import run_checklist
+    from pnf_bot.scoring.intra_sector_rank import rank_within_sectors
+    from pnf_bot.scoring.sector_indicators import classify_all_sectors
+    from pnf_bot.scoring.stock_state import StockState
+    from pnf_bot.scoring.ta_composite import compute_ta_equivalent
 
     today = date.today()
-    log.info("Daily run starting for %s", today)
+    log.info("Daily run starting for %s (checklist methodology)", today)
     storage_mod.init_database(cfg.data.db_path)
 
-    # Step 1+2: data refresh
+    # 1. Refresh data
     try:
         universe.refresh_universe(cfg)
         prices.refresh_latest_prices(cfg)
@@ -153,23 +157,35 @@ def daily_run(cfg) -> None:  # noqa: ANN001
         click.echo(f"ERROR: Norgate not configured: {e}", err=True)
         sys.exit(3)
 
-    # Step 3: scoring
-    log.info("Scoring universe")
-    active_symbols = universe.get_active_universe(cfg)
+    # Benchmark for RS charts + Rrisk
     benchmark = None
     try:
         benchmark = norgate.fetch_benchmark_ohlc(benchmark_symbol=cfg.norgate.benchmark_symbol)
     except norgate.NorgateNotConfiguredError:
-        log.warning("Benchmark fetch failed; running without RS data")
+        log.warning("Benchmark fetch failed; W1 RS-buy proximity will be off")
 
-    candidates = []
-    for sym in active_symbols:
+    # Active universe with sector info
+    with storage_mod.get_session(cfg.data.db_path) as session:
+        ticker_rows = session.execute(
+            select(storage_mod.Ticker.symbol, storage_mod.Ticker.sector)
+            .where(storage_mod.Ticker.is_active.is_(True))
+        ).all()
+    symbol_to_sector: dict[str, str | None] = dict(ticker_rows)
+    log.info("Building per-stock state for %d active tickers", len(symbol_to_sector))
+
+    stock_states: list[StockState] = []
+    raw_ohlc_by_symbol = {}
+    yesterday_ta_scores: dict[str, int] = {}
+    as_of_date = today
+
+    for sym, sector in symbol_to_sector.items():
         try:
             ohlc = norgate.fetch_ohlc(sym, adjustment=cfg.norgate.price_adjustment)
         except Exception:  # noqa: BLE001
             continue
         if ohlc.empty or len(ohlc) < 20:
             continue
+
         try:
             price_chart = construct_chart(sym, ohlc)
             rs_chart = (
@@ -177,47 +193,92 @@ def daily_run(cfg) -> None:  # noqa: ANN001
             )
         except Exception:  # noqa: BLE001
             continue
-        pre = score_stock_pre_momentum(sym, price_chart, rs_chart, as_of_date=today)
-        if pre is not None:
-            candidates.append((pre, price_chart, rs_chart))
-        in_mom = score_stock_in_momentum(sym, price_chart, rs_chart, as_of_date=today)
-        if in_mom is not None:
-            candidates.append((in_mom, price_chart, rs_chart))
 
-    report = build_daily_report(
-        [c[0] for c in candidates],
-        as_of_date=today,
-        section_a_top_n=cfg.scoring.section_a_top_n,
-        section_b_top_n=cfg.scoring.section_b_top_n,
+        ta = compute_ta_equivalent(price_chart, rs_chart=rs_chart)
+
+        # Yesterday's TA: drop the last bar and recompute
+        if len(ohlc) >= 21:
+            try:
+                ohlc_yesterday = ohlc.iloc[:-1]
+                bench_yesterday = (
+                    benchmark.iloc[:-1] if benchmark is not None and len(benchmark) >= 2 else None
+                )
+                yesterday_chart = construct_chart(sym, ohlc_yesterday)
+                yesterday_rs = (
+                    construct_rs_chart(sym, ohlc_yesterday, bench_yesterday)
+                    if bench_yesterday is not None
+                    else None
+                )
+                ta_y = compute_ta_equivalent(yesterday_chart, rs_chart=yesterday_rs)
+                yesterday_ta_scores[sym] = ta_y.score
+            except Exception:  # noqa: BLE001
+                pass
+
+        # Use the latest bar's date as the "as_of_date" for the checklist —
+        # signals' fired_date will compare against this, so it must match the
+        # chart's actual latest column end_date (which can lag today's calendar
+        # date if markets were closed).
+        as_of_date = ohlc.index[-1].date()
+
+        stock_states.append(
+            StockState(
+                symbol=sym,
+                sector=sector,
+                price_chart=price_chart,
+                rs_chart_vs_market=rs_chart,
+                latest_price_signal=latest_signal(price_chart),
+                latest_rs_vs_market_signal=(
+                    latest_signal(rs_chart) if rs_chart is not None else None
+                ),
+                ta_score=ta.score,
+                above_bullish_support=is_above_bullish_support(price_chart),
+            )
+        )
+        raw_ohlc_by_symbol[sym] = ohlc
+
+    log.info(
+        "Built %d stock states; yesterday TA known for %d; as_of_date=%s",
+        len(stock_states),
+        len(yesterday_ta_scores),
+        as_of_date,
+    )
+
+    # 4-5. Sector aggregation + intra-sector ranking
+    sector_indicators = classify_all_sectors(stock_states)
+    intra_sector_ranks = rank_within_sectors(stock_states)
+    favored_count = sum(1 for s in sector_indicators.values() if s.classification == "favored")
+    log.info(
+        "Sector classification: %d favored / %d total",
+        favored_count, len(sector_indicators),
+    )
+
+    # 6. Run checklist
+    report = run_checklist(
+        stocks=stock_states,
+        raw_ohlc_by_symbol=raw_ohlc_by_symbol,
+        benchmark_ohlc=benchmark,
+        sector_indicators=sector_indicators,
+        intra_sector_ranks=intra_sector_ranks,
+        yesterday_ta_scores=yesterday_ta_scores,
+        as_of_date=as_of_date,
+        top_n=30,
     )
     log.info(
-        "Built report: %d Section A, %d Section B, %d new last night",
-        len(report.section_a_top_n),
-        len(report.section_b_top_n),
-        len(report.new_patterns_last_night),
+        "Checklist built: List 1 (fired today) = %d, List 2 (one box away) = %d, OBOS-eliminated = %d",
+        len(report.list_1_fired_today),
+        len(report.list_2_one_box_away),
+        report.eliminated_obos_count,
     )
 
-    # Step 4: compile details + render
-    section_a_details = []
-    for cand in report.section_a_top_n:
-        for c, pc, rc in candidates:
-            if c.symbol == cand.symbol and c.section == cand.section:
-                section_a_details.append(compile_stock_detail(c, pc, rc))
-                break
-    section_b_details = []
-    for cand in report.section_b_top_n:
-        for c, pc, rc in candidates:
-            if c.symbol == cand.symbol and c.section == cand.section:
-                section_b_details.append(compile_stock_detail(c, pc, rc))
-                break
-    html = render_html_report(report, section_a_details, section_b_details)
+    # 7. Render
+    html = render_checklist_html(report)
     pdf_bytes = None
     try:
-        pdf_bytes = render_pdf_report(report, section_a_details, section_b_details)
+        pdf_bytes = render_checklist_pdf(report)
     except RuntimeError as e:
         log.warning("PDF rendering failed (WeasyPrint missing?): %s", e)
 
-    # Step 5: deliver
+    # 8. Send + persist
     smtp = SmtpConfig(
         host=cfg.email.smtp_host,
         port=cfg.email.smtp_port,
@@ -238,7 +299,6 @@ def daily_run(cfg) -> None:  # noqa: ANN001
     else:
         log.error("Email delivery failed: %s", delivery_result.error_message)
 
-    # Step 6: persist audit log
     persist_report_to_audit_log(
         db_path=cfg.data.db_path,
         report_date=today,
@@ -248,24 +308,27 @@ def daily_run(cfg) -> None:  # noqa: ANN001
         pdf_bytes=pdf_bytes,
         archive_dir=cfg.report.archive_dir,
         parameter_snapshot={
-            "section_a_top_n": cfg.scoring.section_a_top_n,
-            "section_b_top_n": cfg.scoring.section_b_top_n,
+            "methodology": "checklist_v1",
+            "top_n": 30,
             "benchmark_symbol": cfg.norgate.benchmark_symbol,
             "price_adjustment": cfg.norgate.price_adjustment,
             "min_price": cfg.data.min_price,
         },
-        candidate_count_section_a=len(report.section_a_top_n),
-        candidate_count_section_b=len(report.section_b_top_n),
-        candidate_count_new_last_night=len(report.new_patterns_last_night),
+        # Reuse the audit-log fields for the new methodology:
+        # section_a → List 1 (fired today)
+        # section_b → List 2 (one box away)
+        # new_last_night → OBOS-eliminated count (informational)
+        candidate_count_section_a=len(report.list_1_fired_today),
+        candidate_count_section_b=len(report.list_2_one_box_away),
+        candidate_count_new_last_night=report.eliminated_obos_count,
         delivery_result=delivery_result,
     )
 
-    # Step 7: feedback tracking
-    for cand in report.section_a_top_n:
-        record_recommendation(cfg.data.db_path, today, cand)
-    for cand in report.section_b_top_n:
-        record_recommendation(cfg.data.db_path, today, cand)
-
+    click.echo(
+        f"Daily run complete. List 1: {len(report.list_1_fired_today)}, "
+        f"List 2: {len(report.list_2_one_box_away)}, "
+        f"delivery: {'sent' if delivery_result.success else 'failed'}"
+    )
     log.info("Daily run complete")
     click.echo(f"Daily run complete. Section A: {len(report.section_a_top_n)}, "
                f"Section B: {len(report.section_b_top_n)}, "

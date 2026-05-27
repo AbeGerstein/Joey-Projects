@@ -30,7 +30,12 @@ from pnf_bot.report.detail import (
     StockDetailRecord,
     compile_stock_detail,
 )
-from pnf_bot.report.render import render_html_report, render_pdf_report
+from pnf_bot.report.render import (
+    render_checklist_html,
+    render_checklist_pdf,
+    render_html_report,
+    render_pdf_report,
+)
 
 __all__ = [
     "DeliveryResult",
@@ -40,6 +45,8 @@ __all__ = [
     "StockDetailRecord",
     "compile_stock_detail",
     "persist_report_to_audit_log",
+    "render_checklist_html",
+    "render_checklist_pdf",
     "render_html_report",
     "render_pdf_report",
     "render_pnf_chart",

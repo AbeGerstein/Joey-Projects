@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Daily PnF Checklist Report — {{ report.as_of_date }}</title>
+<style>
+  @page { size: letter; margin: 0.5in; }
+  body { font-family: Helvetica, Arial, sans-serif; font-size: 11pt; color: #222; }
+  h1 { font-size: 20pt; margin: 0 0 0.2em 0; }
+  h2 { font-size: 14pt; margin-top: 1.5em; color: #1a4d7a; border-bottom: 2px solid #1a4d7a; padding-bottom: 0.2em; }
+  .header-summary { background: #f4f7fa; padding: 0.8em; border-left: 4px solid #1a4d7a; margin-bottom: 1em; }
+  .header-summary p { margin: 0.2em 0; }
+  .disclaimer { background: #fff3cd; border: 1px solid #ffeeba; padding: 0.7em; margin: 1em 0; font-size: 9pt; color: #856404; }
+  .card { border: 1px solid #d0d4d9; border-radius: 4px; padding: 0.6em 0.9em; margin: 0.5em 0; page-break-inside: avoid; }
+  .card .top-line { display: flex; justify-content: space-between; align-items: baseline; }
+  .rank { font-weight: bold; font-size: 13pt; color: #1a4d7a; }
+  .symbol { font-weight: bold; font-size: 13pt; }
+  .sector-tag { display: inline-block; padding: 1px 6px; border-radius: 3px; font-size: 9pt; margin-left: 0.5em; }
+  .sector-favored { background: #d4edda; color: #155724; }
+  .sector-average { background: #fff3cd; color: #856404; }
+  .sector-unfavored { background: #f8d7da; color: #721c24; }
+  .total-weight { font-weight: bold; color: #1a4d7a; }
+  .pattern-list { font-style: italic; color: #555; margin: 0.3em 0; }
+  .breakdown { font-size: 10pt; color: #444; margin: 0.3em 0; }
+  .breakdown li { margin: 0.1em 0; }
+  .supplemental { font-size: 9pt; color: #666; margin-top: 0.4em; padding-top: 0.4em; border-top: 1px dotted #ccc; }
+  .supplemental .label { font-weight: bold; color: #333; }
+  .empty { color: #999; font-style: italic; padding: 0.5em; }
+</style>
+</head>
+<body>
+
+<h1>Daily PnF Checklist Report</h1>
+<p style="margin-top:0; color:#666;">As of {{ report.as_of_date }}</p>
+
+<div class="header-summary">
+  <p><strong>List 1 — Patterns fired today:</strong> {{ report.list_1_fired_today | length }} candidate{{ '' if (report.list_1_fired_today | length) == 1 else 's' }}</p>
+  <p><strong>List 2 — One box away:</strong> {{ report.list_2_one_box_away | length }} candidate{{ '' if (report.list_2_one_box_away | length) == 1 else 's' }}</p>
+  {% if report.eliminated_obos_count > 0 %}
+  <p style="color:#856404;"><strong>OBOS hard-cut:</strong> {{ report.eliminated_obos_count }} stocks eliminated above 115% overbought</p>
+  {% endif %}
+</div>
+
+<div class="disclaimer">
+  <strong>DISCLAIMER:</strong> Internal idea generation only. Not investment advice. Not client-facing.
+  Methodology: Dorsey Wright Point and Figure with checklist weighting. Excludes Double Top.
+</div>
+
+{% macro render_card(c) %}
+<div class="card">
+  <div class="top-line">
+    <span>
+      <span class="rank">#{{ c.rank }}</span>
+      <span class="symbol">{{ c.symbol }}</span>
+      {% if c.sector %}
+      <span class="sector-tag sector-{{ c.sector_classification }}">{{ c.sector }} — {{ c.sector_classification | upper }}</span>
+      {% endif %}
+    </span>
+    <span class="total-weight">weight {{ c.weights.total }}</span>
+  </div>
+  <p class="pattern-list">
+    {% if c.list_id == 1 %}Fired today:{% else %}One box away from:{% endif %}
+    {{ c.triggering_patterns | join(', ') }}
+  </p>
+  {% if c.weight_descriptions %}
+  <ul class="breakdown">
+    {% for d in c.weight_descriptions %}
+    <li>{{ d }}</li>
+    {% endfor %}
+  </ul>
+  {% endif %}
+  <div class="supplemental">
+    {% if c.intra_sector_rank is not none %}
+    <span class="label">Sector rank:</span> #{{ c.intra_sector_rank }} of {{ c.intra_sector_size }} &nbsp;|&nbsp;
+    {% endif %}
+    <span class="label">TA:</span> {{ c.ta_score }}/5{% if c.ta_score_yesterday is not none %} (was {{ c.ta_score_yesterday }}/5){% endif %} &nbsp;|&nbsp;
+    <span class="label">OBOS:</span> {{ c.obos if c.obos is not none else 'n/a' }}{% if c.obos is not none %}%{% endif %} &nbsp;|&nbsp;
+    <span class="label">Rrisk:</span> {{ c.rrisk if c.rrisk is not none else 'n/a' }} &nbsp;|&nbsp;
+    <span class="label">Rew/Risk:</span> {{ c.rew_risk if c.rew_risk is not none else 'n/a' }}
+  </div>
+</div>
+{% endmacro %}
+
+<h2>List 1 — Patterns Fired Today (top {{ report.list_1_fired_today | length }})</h2>
+{% if report.list_1_fired_today %}
+  {% for c in report.list_1_fired_today %}
+    {{ render_card(c) }}
+  {% endfor %}
+{% else %}
+<p class="empty">No qualifying patterns fired today.</p>
+{% endif %}
+
+<h2>List 2 — One Box Away from a New Pattern (top {{ report.list_2_one_box_away | length }})</h2>
+{% if report.list_2_one_box_away %}
+  {% for c in report.list_2_one_box_away %}
+    {{ render_card(c) }}
+  {% endfor %}
+{% else %}
+<p class="empty">No qualifying patterns one box away today.</p>
+{% endif %}
+
+</body>
+</html>
