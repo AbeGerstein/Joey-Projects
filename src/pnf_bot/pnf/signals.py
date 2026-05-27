@@ -40,15 +40,21 @@ SignalType = Literal[
     "double_bottom",
     "triple_top",
     "triple_bottom",
+    "quadruple_top",
+    "quintuple_top",
     "spread_triple_top",
     "spread_triple_bottom",
-    # Compound signals (Phase 2C)
+    "spread_quadruple_top",
+    "spread_quintuple_top",
+    # Compound signals
     "bullish_catapult",
     "bearish_catapult",
     "bullish_triangle",
     "bearish_triangle",
     "long_tail_down",
     "long_tail_up",
+    "shakeout",
+    "bearish_signal_reversal",
 ]
 
 SignalDirection = Literal["bullish", "bearish"]
@@ -195,6 +201,87 @@ def _detect_x_signals(
                     signals.append(
                         Signal(
                             type="spread_triple_top",
+                            direction="bullish",
+                            column_index=current_idx,
+                            fired_date=fired,
+                            price_level=signal_level,
+                        )
+                    )
+
+    # --- Quadruple Top: three prior X columns at the SAME top, current exceeds ---
+    if len(prior_x_cols) >= 3:
+        priors = prior_x_cols[:3]
+        if priors[0].top == priors[1].top == priors[2].top:
+            signal_level = priors[0].top + box
+            if current.top >= signal_level:
+                fired = current.date_when_extreme_reached(signal_level) or current.end_date
+                signals.append(
+                    Signal(
+                        type="quadruple_top",
+                        direction="bullish",
+                        column_index=current_idx,
+                        fired_date=fired,
+                        price_level=signal_level,
+                    )
+                )
+
+    # --- Quintuple Top: four prior X columns at the SAME top, current exceeds ---
+    if len(prior_x_cols) >= 4:
+        priors = prior_x_cols[:4]
+        if priors[0].top == priors[1].top == priors[2].top == priors[3].top:
+            signal_level = priors[0].top + box
+            if current.top >= signal_level:
+                fired = current.date_when_extreme_reached(signal_level) or current.end_date
+                signals.append(
+                    Signal(
+                        type="quintuple_top",
+                        direction="bullish",
+                        column_index=current_idx,
+                        fired_date=fired,
+                        price_level=signal_level,
+                    )
+                )
+
+    # --- Spread Quadruple Top: three prior X cols at SIMILAR tops within tolerance ---
+    if len(prior_x_cols) >= 3:
+        priors = prior_x_cols[:3]
+        prior_tops = [p.top for p in priors]
+        # Exclude exact-match case (that's the regular Quadruple Top)
+        if len(set(prior_tops)) > 1:
+            spread = max(prior_tops) - min(prior_tops)
+            spread_boxes = spread / box
+            if spread_boxes <= Decimal(spread_tolerance_boxes):
+                signal_level = max(prior_tops) + box
+                if current.top >= signal_level:
+                    fired = (
+                        current.date_when_extreme_reached(signal_level) or current.end_date
+                    )
+                    signals.append(
+                        Signal(
+                            type="spread_quadruple_top",
+                            direction="bullish",
+                            column_index=current_idx,
+                            fired_date=fired,
+                            price_level=signal_level,
+                        )
+                    )
+
+    # --- Spread Quintuple Top: four prior X cols at SIMILAR tops within tolerance ---
+    if len(prior_x_cols) >= 4:
+        priors = prior_x_cols[:4]
+        prior_tops = [p.top for p in priors]
+        if len(set(prior_tops)) > 1:
+            spread = max(prior_tops) - min(prior_tops)
+            spread_boxes = spread / box
+            if spread_boxes <= Decimal(spread_tolerance_boxes):
+                signal_level = max(prior_tops) + box
+                if current.top >= signal_level:
+                    fired = (
+                        current.date_when_extreme_reached(signal_level) or current.end_date
+                    )
+                    signals.append(
+                        Signal(
+                            type="spread_quintuple_top",
                             direction="bullish",
                             column_index=current_idx,
                             fired_date=fired,
@@ -412,6 +499,61 @@ def _detect_bullish_compound_signals(
                     price_level=current.bottom,
                 )
             )
+
+    # --- Shakeout (BULLISH): tight pullback within a bullish chart that reclaims highs ---
+    # Pattern: prior O column (col i-1) made a SHALLOW dip below the X col before it
+    # (1-3 boxes lower than the X col's bottom), and the current X column fires a
+    # Double Top reclaiming new highs. The brief dip "shakes out" weak hands; the
+    # prompt new buy signal confirms the uptrend is intact.
+    if current_idx >= 2:
+        prior_o = chart.columns[current_idx - 1]
+        x_before_o = chart.columns[current_idx - 2]
+        if prior_o.type == "O" and x_before_o.type == "X":
+            dip_boxes = (x_before_o.bottom - prior_o.bottom) / box
+            shallow = Decimal("1") <= dip_boxes <= Decimal("3")
+            dt_level = x_before_o.top + box
+            fired_dt = current.top >= dt_level
+            if shallow and fired_dt:
+                fired = current.date_when_extreme_reached(dt_level) or current.end_date
+                signals.append(
+                    Signal(
+                        type="shakeout",
+                        direction="bullish",
+                        column_index=current_idx,
+                        fired_date=fired,
+                        price_level=dt_level,
+                    )
+                )
+
+    # --- Bearish Signal Reversal (BULLISH despite the name) ---
+    # A buy signal fires immediately after the prior O column fired a sell signal.
+    # In Dorsey's framework this signals that the bears who just shorted the sell
+    # are getting reversed out — often the start of a durable trend change.
+    # Structural: prior O col i-1 fired a Double Bottom (broke prior O col's low),
+    # current X col i fires a Double Top (exceeds prior X col's top).
+    if current_idx >= 3:
+        prior_o = chart.columns[current_idx - 1]
+        x_before_o = chart.columns[current_idx - 2]
+        o_before_x = chart.columns[current_idx - 3]
+        if (
+            prior_o.type == "O"
+            and x_before_o.type == "X"
+            and o_before_x.type == "O"
+        ):
+            prior_o_fired_db = prior_o.bottom < o_before_x.bottom
+            dt_level = x_before_o.top + box
+            current_fired_dt = current.top >= dt_level
+            if prior_o_fired_db and current_fired_dt:
+                fired = current.date_when_extreme_reached(dt_level) or current.end_date
+                signals.append(
+                    Signal(
+                        type="bearish_signal_reversal",
+                        direction="bullish",
+                        column_index=current_idx,
+                        fired_date=fired,
+                        price_level=dt_level,
+                    )
+                )
 
     return signals
 

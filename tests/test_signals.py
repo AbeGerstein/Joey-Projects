@@ -318,3 +318,191 @@ class TestExtensionHistory:
         # Looking for the first date when top >= 52
         d = col.date_when_extreme_reached(_d("52.00"))
         assert d == date(2026, 1, 6)
+
+
+# ---------------------------------------------------------------------------
+# Extended-tops: Quadruple Top / Quintuple Top / Spread variants
+# ---------------------------------------------------------------------------
+
+
+class TestQuadrupleTop:
+    def test_three_priors_at_same_top_then_breakout(self) -> None:
+        """Three prior X columns at 55, fourth X breaks → Quadruple Top at 56."""
+        bars = [
+            (date(2026, 1, 5), 55.0, 50.0),   # X1
+            (date(2026, 1, 6), 55.0, 51.0),   # O
+            (date(2026, 1, 7), 55.0, 51.0),   # X2 at 55
+            (date(2026, 1, 8), 55.0, 51.0),   # O
+            (date(2026, 1, 9), 55.0, 51.0),   # X3 at 55
+            (date(2026, 1, 10), 55.0, 51.0),  # O
+            (date(2026, 1, 11), 56.0, 51.0),  # X4 exceeds → Quad Top
+        ]
+        chart = construct_chart("TEST", _ohlc(bars))
+        signals = detect_signals(chart)
+        quad = [s for s in signals if s.type == "quadruple_top"]
+        assert len(quad) >= 1
+        assert quad[0].direction == "bullish"
+        assert quad[0].price_level == _d("56.00")
+        # DT and TT should also fire on the same column
+        types = {s.type for s in signals if s.column_index == quad[0].column_index}
+        assert "double_top" in types
+        assert "triple_top" in types
+
+    def test_no_quad_when_only_two_priors_match(self) -> None:
+        """Only 2 prior X cols at same top → TT but not Quad."""
+        bars = [
+            (date(2026, 1, 5), 55.0, 50.0),
+            (date(2026, 1, 6), 55.0, 51.0),
+            (date(2026, 1, 7), 55.0, 51.0),
+            (date(2026, 1, 8), 55.0, 51.0),
+            (date(2026, 1, 9), 56.0, 51.0),
+        ]
+        chart = construct_chart("TEST", _ohlc(bars))
+        signals = detect_signals(chart)
+        assert not any(s.type == "quadruple_top" for s in signals)
+        assert any(s.type == "triple_top" for s in signals)
+
+
+class TestQuintupleTop:
+    def test_four_priors_at_same_top_then_breakout(self) -> None:
+        bars = [
+            (date(2026, 1, 5), 55.0, 50.0),   # X1
+            (date(2026, 1, 6), 55.0, 51.0),
+            (date(2026, 1, 7), 55.0, 51.0),   # X2
+            (date(2026, 1, 8), 55.0, 51.0),
+            (date(2026, 1, 9), 55.0, 51.0),   # X3
+            (date(2026, 1, 10), 55.0, 51.0),
+            (date(2026, 1, 11), 55.0, 51.0),  # X4
+            (date(2026, 1, 12), 55.0, 51.0),
+            (date(2026, 1, 13), 56.0, 51.0),  # X5 → Quint Top
+        ]
+        chart = construct_chart("TEST", _ohlc(bars))
+        signals = detect_signals(chart)
+        quint = [s for s in signals if s.type == "quintuple_top"]
+        assert len(quint) >= 1
+        assert quint[0].price_level == _d("56.00")
+
+
+class TestSpreadQuadrupleTop:
+    def test_three_priors_within_tolerance_then_breakout(self) -> None:
+        """Three priors at 55, 56, 55 (max-min spread = 1 box, within 2-box tolerance);
+        fourth X breaks above all → Spread Quad Top.
+        """
+        bars = [
+            (date(2026, 1, 5), 55.0, 50.0),    # X1 at 55
+            (date(2026, 1, 6), 55.0, 51.0),
+            (date(2026, 1, 7), 56.0, 51.0),    # X2 at 56
+            (date(2026, 1, 8), 56.0, 51.0),
+            (date(2026, 1, 9), 55.0, 51.0),    # X3 at 55
+            (date(2026, 1, 10), 55.0, 51.0),
+            (date(2026, 1, 11), 57.0, 51.0),   # X4 breaks → Spread Quad at 57
+        ]
+        chart = construct_chart("TEST", _ohlc(bars))
+        signals = detect_signals(chart)
+        spread_quad = [s for s in signals if s.type == "spread_quadruple_top"]
+        assert len(spread_quad) >= 1
+        assert spread_quad[0].price_level == _d("57.00")
+
+    def test_no_spread_quad_when_tops_identical(self) -> None:
+        """Identical priors → regular Quadruple, not Spread Quad."""
+        bars = [
+            (date(2026, 1, 5), 55.0, 50.0),
+            (date(2026, 1, 6), 55.0, 51.0),
+            (date(2026, 1, 7), 55.0, 51.0),
+            (date(2026, 1, 8), 55.0, 51.0),
+            (date(2026, 1, 9), 55.0, 51.0),
+            (date(2026, 1, 10), 55.0, 51.0),
+            (date(2026, 1, 11), 56.0, 51.0),
+        ]
+        chart = construct_chart("TEST", _ohlc(bars))
+        signals = detect_signals(chart)
+        assert not any(s.type == "spread_quadruple_top" for s in signals)
+        assert any(s.type == "quadruple_top" for s in signals)
+
+
+class TestSpreadQuintupleTop:
+    def test_four_priors_within_tolerance_then_breakout(self) -> None:
+        bars = [
+            (date(2026, 1, 5), 55.0, 50.0),     # X1
+            (date(2026, 1, 6), 55.0, 51.0),
+            (date(2026, 1, 7), 56.0, 51.0),     # X2 (1 box above)
+            (date(2026, 1, 8), 56.0, 51.0),
+            (date(2026, 1, 9), 55.0, 51.0),     # X3
+            (date(2026, 1, 10), 55.0, 51.0),
+            (date(2026, 1, 11), 56.0, 51.0),    # X4
+            (date(2026, 1, 12), 56.0, 51.0),
+            (date(2026, 1, 13), 57.0, 51.0),    # X5 → Spread Quint at 57
+        ]
+        chart = construct_chart("TEST", _ohlc(bars))
+        signals = detect_signals(chart)
+        spread_quint = [s for s in signals if s.type == "spread_quintuple_top"]
+        assert len(spread_quint) >= 1
+        assert spread_quint[0].price_level == _d("57.00")
+
+
+# ---------------------------------------------------------------------------
+# Shakeout (BULLISH) — shallow O dip followed by reclaim
+# ---------------------------------------------------------------------------
+
+
+class TestShakeout:
+    def test_shallow_dip_then_double_top_reclaim(self) -> None:
+        """X up to 55, O dips just 2 boxes below (to 47), X reclaims → Shakeout."""
+        bars = [
+            (date(2026, 1, 5), 50.0, 50.0),    # X to start
+            (date(2026, 1, 6), 55.0, 50.0),    # X1 tops at 55
+            (date(2026, 1, 7), 55.0, 49.0),    # O dips to 49 (just 1 box below 50)
+            (date(2026, 1, 8), 56.0, 49.0),    # X2 reclaims → DT + Shakeout at 56
+        ]
+        chart = construct_chart("TEST", _ohlc(bars))
+        signals = detect_signals(chart)
+        shake = [s for s in signals if s.type == "shakeout"]
+        assert len(shake) >= 1
+        assert shake[0].direction == "bullish"
+
+    def test_no_shakeout_when_dip_too_deep(self) -> None:
+        """O dip is more than 3 boxes below — too deep to count as a shakeout."""
+        bars = [
+            (date(2026, 1, 5), 50.0, 50.0),
+            (date(2026, 1, 6), 55.0, 50.0),    # X1 tops at 55
+            (date(2026, 1, 7), 55.0, 44.0),    # O dips 6 boxes below (to 44)
+            (date(2026, 1, 8), 56.0, 44.0),    # X2 reclaims → DT but NOT shakeout
+        ]
+        chart = construct_chart("TEST", _ohlc(bars))
+        signals = detect_signals(chart)
+        assert not any(s.type == "shakeout" for s in signals)
+
+
+# ---------------------------------------------------------------------------
+# Bearish Signal Reversal (BULLISH despite the name)
+# ---------------------------------------------------------------------------
+
+
+class TestBearishSignalReversal:
+    def test_buy_immediately_after_sell(self) -> None:
+        """Setup: O col fires DB, then X col immediately fires DT → BSR."""
+        bars = [
+            (date(2026, 1, 5), 55.0, 50.0),     # X1 at 55
+            (date(2026, 1, 6), 55.0, 47.0),     # O1 to 47
+            (date(2026, 1, 7), 54.0, 47.0),     # X2 to 54 (below X1, no DT yet)
+            (date(2026, 1, 8), 54.0, 45.0),     # O2 to 45 → DB (below O1 47)
+            (date(2026, 1, 9), 55.0, 45.0),     # X3 to 55 — exceeds X2's top 54 → DT
+        ]
+        chart = construct_chart("TEST", _ohlc(bars))
+        signals = detect_signals(chart)
+        bsr = [s for s in signals if s.type == "bearish_signal_reversal"]
+        assert len(bsr) >= 1
+        assert bsr[0].direction == "bullish"
+
+    def test_no_bsr_without_prior_sell(self) -> None:
+        """Plain Triple Top setup — no preceding sell, so no BSR."""
+        bars = [
+            (date(2026, 1, 5), 55.0, 50.0),
+            (date(2026, 1, 6), 55.0, 51.0),
+            (date(2026, 1, 7), 55.0, 51.0),
+            (date(2026, 1, 8), 55.0, 51.0),
+            (date(2026, 1, 9), 56.0, 51.0),
+        ]
+        chart = construct_chart("TEST", _ohlc(bars))
+        signals = detect_signals(chart)
+        assert not any(s.type == "bearish_signal_reversal" for s in signals)
